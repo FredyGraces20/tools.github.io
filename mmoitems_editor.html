@@ -1391,9 +1391,6 @@ function updateYaml(){
 }
 function generateYaml(){
   saveFromEditor();
-  const cat = document.getElementById('categorySelect').value==='__custom__'
-    ? (document.getElementById('customCatInput').value||'custom')
-    : document.getElementById('categorySelect').value;
   let out='';
   const ids=Object.keys(items).sort();
   if(ids.length===0) return '# No items created yet';
@@ -1485,13 +1482,12 @@ function generateYaml(){
       it.abilities.forEach(ab=>{
         out+=`      ${ab.id||'ability1'}:\n`;
         out+=`        type: ${ab.type}\n`;
-        out+=`        mode: ${ab.mode}\n`;
-        if(ab.damage) out+=`        damage: ${ab.damage}\n`;
-        if(ab.cooldown!=='') out+=`        cooldown: ${ab.cooldown}\n`;
-        if(ab.duration) out+=`        duration: ${ab.duration}\n`;
-        if(ab.drain) out+=`        drain: ${ab.drain}\n`;
-        if(ab.range) out+=`        range: ${ab.range}\n`;
-        if(ab.ignite) out+=`        ignite: ${ab.ignite}\n`;
+        const params = ABILITY_PARAMS[ab.type] || ['mode','cooldown'];
+        params.forEach(p=>{
+          if(ab[p]!==undefined && ab[p]!==''){
+            out+=`        ${p.replace(/_/g,'-')}: ${ab[p]}\n`;
+          }
+        });
       });
     }
     // Booleans
@@ -1547,10 +1543,7 @@ function exportYaml(){
   const blob=new Blob([txt],{type:'text/yaml'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  const cat=document.getElementById('categorySelect').value==='__custom__'
-    ?(document.getElementById('customCatInput').value||'custom')
-    :document.getElementById('categorySelect').value;
-  a.download=cat+'.yml';
+  a.download='mmoitems.yml';
   a.click();
 }
 
