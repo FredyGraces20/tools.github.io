@@ -818,7 +818,7 @@ function saveButtonFromEditor(){
   if(!activeBtnId || !buttons[activeBtnId]) return;
   const b = buttons[activeBtnId];
   b.mat = document.getElementById('btnMat').value||'STONE';
-  b.name = document.getElementById('btnName').value||'&f&lBOTON';
+  b.name = document.getElementById('btnName').value;
   b.lore = document.getElementById('btnLore').value;
   b.update = parseInt(document.getElementById('btnUpdate').value)||0;
   const headTex = document.getElementById('btnHeadTexture');
@@ -2562,7 +2562,7 @@ function renderDetailModal(charId){
   const color = ITEM_COLORS[displayMat] || '#888';
   const wikiUrl = getWikiIconUrl(displayMat);
   let tooltipHtml = '<div class="mc-tooltip">';
-  tooltipHtml += `<div class="mc-item-name">${renderColoredText(displayName || charId)}</div>`;
+  tooltipHtml += `<div class="mc-item-name">${renderColoredText(displayName)}</div>`;
   if(displayLore){
     tooltipHtml += '<div class="mc-item-lore">';
     displayLore.split('\n').forEach(line=>{
