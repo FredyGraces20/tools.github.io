@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MineLatino | Tags Editor</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#c9d1d9;font-family:'Segoe UI',system-ui,sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#0d1117}
+::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
+h1{font-size:.95rem;color:#58a6ff;margin-bottom:10px}
+label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.8px;color:#8b949e;margin:10px 0 4px}
+input,select,textarea{width:100%;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:7px 9px;color:#c9d1d9;font-size:.85rem;outline:none;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:#58a6ff}
+textarea{resize:vertical;min-height:60px;font-family:'Cascadia Code','Fira Code',monospace;font-size:.8rem}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.btn{padding:8px 14px;border:none;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;transition:all .15s}
+.btn-primary{background:#238636;color:#fff}.btn-primary:hover{background:#2ea043}
+.btn-secondary{background:#21262d;color:#c9d1d9}.btn-secondary:hover{background:#30363d}
+.btn-danger{background:#da3633;color:#fff}.btn-danger:hover{background:#f85149}
+.btn-sm{padding:5px 10px;font-size:.75rem}
+
+/* Top Bar */
+.topbar{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid #21262d;flex-shrink:0;align-items:center;background:#161b22}
+.topbar h1{margin:0;font-size:.85rem}
+
+/* Tab Bar */
+.tab-bar{display:flex;border-bottom:1px solid #21262d;flex-shrink:0;background:#161b22}
+.tab{padding:10px 18px;font-size:.8rem;color:#8b949e;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.tab:hover{color:#c9d1d9}
+.tab.active{color:#58a6ff;border-bottom-color:#58a6ff}
+
+/* Tab Content */
+.tab-content{flex:1;overflow-y:auto;padding:16px}
+.tab-page{display:none}
+.tab-page.active{display:block}
+
+/* Format Modal */
+.fmt-toolbar{display:none}
+.fmt-popup{position:relative;display:inline-flex;align-items:center}
+.fmt-popup-btn{width:28px;height:28px;border:1px solid #30363d;border-radius:4px;background:linear-gradient(135deg,#ff5555 25%,#55ff55 25%,#55ff55 50%,#5555ff 50%,#5555ff 75%,#ffff55 75%);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000;flex-shrink:0;transition:all .15s}
+.fmt-popup-btn:hover{border-color:#58a6ff;transform:scale(1.08)}
+.fmt-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;display:none;align-items:center;justify-content:center}
+.fmt-modal-overlay.show{display:flex}
+.fmt-modal{background:#161b22;border:1px solid #30363d;border-radius:12px;width:420px;max-width:90vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.fmt-modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #21262d;flex-shrink:0}
+.fmt-modal-hdr span{font-size:.85rem;font-weight:600;color:#58a6ff}
+.fmt-modal-hdr button{background:none;border:none;color:#8b949e;font-size:1.2rem;cursor:pointer;padding:4px 8px;border-radius:4px}
+.fmt-modal-hdr button:hover{color:#f85149;background:#21262d}
+.fmt-modal-body{flex:1;overflow-y:auto;padding:14px 16px}
+.fmt-modal-target{font-size:.7rem;color:#484f58;padding:0 16px 10px;border-bottom:1px solid #21262d;font-style:italic}
+.fmt-editor-wrap{margin-bottom:12px}
+.fmt-editor-label{font-size:.65rem;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.fmt-editor-textarea{width:100%;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:8px 10px;color:#c9d1d9;font-family:'Cascadia Code','Fira Code',monospace;font-size:.8rem;resize:vertical;min-height:48px;outline:none;box-sizing:border-box}
+.fmt-editor-textarea:focus{border-color:#58a6ff}
+.fmt-editor-preview{background:#1a1a2e;border:1px solid #30363d;border-radius:6px;padding:8px 10px;margin-top:6px;min-height:32px;font-size:.85rem;line-height:1.5;font-family:'Courier New',monospace;text-shadow:1px 1px 0 rgba(0,0,0,.5)}
+.fmt-editor-preview:empty::before{content:'Vista previa...';color:#484f58;font-style:italic}
+.fmt-editor-insert{display:flex;gap:8px;margin-top:10px}
+.fmt-editor-insert .btn{flex:1;padding:8px;font-size:.8rem;font-weight:600}
+.fmt-section-title{font-size:.65rem;color:#484f58;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid #21262d}
+.fmt-section-title:first-child{margin-top:0}
+.fmt-color-grid{display:flex;flex-wrap:wrap;gap:4px}
+.fmt-color{width:28px;height:28px;border:1px solid #30363d;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;transition:all .1s;flex-shrink:0}
+.fmt-color:hover{border-color:#58a6ff;transform:scale(1.15)}
+.fmt-sep{width:1px;height:18px;background:#30363d;margin:0 3px;flex-shrink:0}
+.fmt-hex-wrap{display:flex;align-items:center;gap:4px;margin-top:4px;flex-shrink:0}
+.fmt-hex-wrap input[type="color"]{width:28px;height:28px;border:1px solid #30363d;border-radius:3px;cursor:pointer;padding:0;background:none}
+.fmt-hex-wrap input[type="color"]::-webkit-color-swatch-wrapper{padding:1px}
+.fmt-hex-wrap input[type="color"]::-webkit-color-swatch{border:none;border-radius:2px}
+.fmt-grad-wrap{display:flex;align-items:center;gap:4px;margin-top:4px;flex-wrap:wrap;flex-shrink:0}
+.fmt-grad-wrap input[type="color"]{width:28px;height:28px;border:1px solid #30363d;border-radius:3px;cursor:pointer;padding:0;background:none}
+.fmt-grad-wrap input[type="color"]::-webkit-color-swatch-wrapper{padding:1px}
+.fmt-grad-wrap input[type="color"]::-webkit-color-swatch{border:none;border-radius:2px}
+.fmt-grad-wrap .btn{padding:3px 6px;font-size:.65rem}
+.fmt-reset{background:#30363d!important;color:#c9d1d9!important;font-size:.6rem!important;width:22px!important;height:22px!important}
+
+/* Properties */
+.prop-section{margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #21262d}
+.prop-section:last-child{border-bottom:none}
+.prop-title{font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:#58a6ff;margin-bottom:10px;font-weight:600}
+
+/* Preview */
+.preview-wrap{display:flex;flex-direction:column;gap:16px}
+.preview-box{background:#161b22;border:1px solid #21262d;border-radius:8px;padding:16px}
+.preview-chat{font-family:'Cascadia Code','Fira Code',monospace;font-size:.9rem;line-height:1.6}
+.preview-item{display:flex;flex-direction:column;align-items:center;gap:10px}
+.preview-item-icon{width:64px;height:64px;background:#1a1a2e;border:1px solid #30363d;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:2.5rem}
+.preview-item-name{font-size:1rem;font-weight:600;text-align:center}
+.preview-item-lore{font-size:.85rem;color:#8b949e;text-align:center;white-space:pre-line}
+
+/* YAML Preview */
+.yaml-preview{background:#161b22;border:1px solid #21262d;border-radius:8px;padding:14px;font-family:'Cascadia Code','Fira Code',monospace;font-size:.78rem;line-height:1.6;white-space:pre;overflow:auto;color:#7ee787}
+.yaml-preview .k{color:#ff7b72}
+.yaml-preview .v{color:#a5d6ff}
+.yaml-preview .c{color:#484f58}
+
+/* Emoji Picker Modal */
+.emoji-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;display:none;align-items:center;justify-content:center}
+.emoji-modal-overlay.show{display:flex}
+.emoji-modal{background:#161b22;border:1px solid #30363d;border-radius:12px;width:480px;max-width:90vw;max-height:70vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.emoji-modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #21262d;flex-shrink:0}
+.emoji-modal-hdr span{font-size:.85rem;font-weight:600;color:#58a6ff}
+.emoji-modal-hdr button{background:none;border:none;color:#8b949e;font-size:1.2rem;cursor:pointer;padding:4px 8px;border-radius:4px}
+.emoji-modal-hdr button:hover{color:#f85149;background:#21262d}
+.emoji-modal-search{padding:10px 18px;border-bottom:1px solid #21262d;flex-shrink:0}
+.emoji-modal-search input{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:8px 12px;color:#c9d1d9;font-size:.85rem;width:100%;outline:none}
+.emoji-modal-search input:focus{border-color:#58a6ff}
+.emoji-modal-body{flex:1;overflow-y:auto;padding:12px 18px}
+.emoji-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:4px;padding:4px}
+.emoji-btn{width:36px;height:36px;border:1px solid #30363d;border-radius:4px;background:#161b22;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.2rem;transition:all .1s}
+.emoji-btn:hover{border-color:#58a6ff;background:#1a2332;transform:scale(1.1)}
+.emoji-category{font-size:.7rem;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin:8px 0 4px;font-weight:600}
+.emoji-modal-footer{padding:10px 18px;border-top:1px solid #21262d;flex-shrink:0;text-align:center;font-size:.75rem;color:#484f58}
+.emoji-trigger{width:32px;height:32px;border:1px solid #30363d;border-radius:6px;background:#21262d;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all .15s;flex-shrink:0}
+.emoji-trigger:hover{border-color:#58a6ff;background:#1a2332;transform:scale(1.05)}
+/* Tag Manager */
+.tag-manager{display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
+.tag-list{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.tag-chip{padding:6px 12px;background:#21262d;border:1px solid #30363d;border-radius:6px;cursor:pointer;font-size:.75rem;color:#c9d1d9;transition:all .15s;display:flex;align-items:center;gap:6px}
+.tag-chip:hover{border-color:#58a6ff;background:#1a2332}
+.tag-chip.active{background:#1a3a5c;border-color:#58a6ff;color:#58a6ff}
+.tag-chip-delete{background:none;border:none;color:#8b949e;cursor:pointer;font-size:.9rem;padding:0;line-height:1;transition:color .15s}
+.tag-chip-delete:hover{color:#f85149}
+.tag-add-btn{padding:6px 12px;background:#238636;border:1px solid #2ea043;border-radius:6px;cursor:pointer;font-size:.75rem;color:#fff;font-weight:600;transition:all .15s;white-space:nowrap}
+.tag-add-btn:hover{background:#2ea043}
+
+.tag-text-row{display:flex;gap:6px;align-items:flex-end}
+.sc-toggle{height:22px;padding:0 8px;border:1px solid #30363d;border-radius:3px;background:#30363d;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#c9d1d9;transition:all .15s;flex-shrink:0}
+.sc-toggle:hover{border-color:#58a6ff;color:#58a6ff}
+.sc-toggle.active{background:#1a3a5c;border-color:#58a6ff;color:#58a6ff}
+</style>
+</head>
+<body>
+<!-- TOP BAR -->
+<div class="topbar">
+<h1 style="margin:0;font-size:.85rem">&#9874; MineLatino | Editor de Tags</h1>
+<div style="flex:1"></div>
+<button class="btn btn-secondary" onclick="exportYaml()">&#11015; Descargar .yml</button>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+<div class="tab active" data-tab="editor" onclick="switchTab('editor')">&#9998; Editor</div>
+<div class="tab" data-tab="preview" onclick="switchTab('preview');updatePreview()">&#128065; Preview</div>
+<div class="tab" data-tab="yaml" onclick="switchTab('yaml');generateYamlPreview()">&#128196; YAML</div>
+</div>
+
+<!-- TAB CONTENT -->
+<div class="tab-content">
+
+<!-- EDITOR TAB -->
+<div class="tab-page active" id="tab-editor">
+<!-- Tag Manager -->
+<div class="tag-manager">
+<div class="tag-list" id="tagList"></div>
+<button class="tag-add-btn" onclick="addNewTag()">+ New Tag</button>
+</div>
+
+<div class="prop-section">
+<div class="prop-title">Información Básica</div>
+<label>Tag ID (El cuál se usa para diferenciar de los demás)</label>
+<input type="text" id="tagId" value="etapapirata1" oninput="markDirty()">
+<label>Textura de cabeza (usa el Vaule) <a href="https://minecraft-heads.com" target="_blank" style="color:#58a6ff;text-decoration:none;font-size:.7rem;margin-left:6px">&#128279; minecraft-heads.com</a></label>
+<textarea id="tagTexture" rows="3" oninput="markDirty()" placeholder="eyJ0ZXh0dXJlcyI6...">eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWMwZDU3YzM3MDk4YzY5N2NhOGY4MjIyZjUzNzY1ZTUxYTI5ODNmNDYwM2Y0ZDJiMTdkYjAxZTZjNjhhYjg5ZSJ9fX0=</textarea>
+</div>
+
+<div class="prop-section">
+<div class="prop-title">TAG</div>
+<div style="font-size:.7rem;color:#8b949e;margin-bottom:6px">Así se verá el tag dentro del juego</div>
+<div class="tag-text-row">
+<input type="text" id="tagText" value="&8[&f&8]&f" oninput="updatePreview();markDirty()" style="flex:1">
+<button class="fmt-popup-btn" onclick="openFmtModal('tagText',true)" title="Colores y formato">A</button>
+</div>
+</div>
+
+<div class="prop-section">
+<div class="prop-title">Permiso</div>
+<label>Este será el permiso que usará para adquirir el tag</label>
+<input type="text" id="tagPermission" value="deluxetags.tag.etapapirata1" oninput="markDirty()">
+</div>
+
+<div class="prop-section">
+<div class="prop-title">Lore visible</div>
+<div style="font-size:.7rem;color:#8b949e;margin-bottom:6px">Este Lore se verá dentro del juego</div>
+<div style="display:flex;gap:6px;margin-bottom:6px">
+<button class="fmt-popup-btn" onclick="openFmtModal('loreBase',false)" title="Colores y formato">A</button>
+</div>
+<textarea id="loreBase" rows="6" oninput="updatePreview();markDirty()">&7Se consigue en la Caja Pirata
+&7que consigues en el
+&7/warp piratas.
+
+&f&nTipo de tag:&2&l Raro</textarea>
+</div>
+
+<div class="prop-section">
+<div class="prop-title">Mensaje</div>
+<label>Te llegará este mensaje si no tienes el permiso</label>
+<div style="display:flex;gap:6px;margin-bottom:6px">
+<button class="fmt-popup-btn" onclick="openFmtModal('noPermMessage',false)" title="Colores y formato">A</button>
+</div>
+<input type="text" id="noPermMessage" value="&f&l MINE&e&lLATINO &8» &c¡No tienes este tag! Ve al /warp piratas, para saber cómo se consigue" oninput="markDirty()">
+</div>
+</div>
+
+<!-- PREVIEW TAB -->
+<div class="tab-page" id="tab-preview">
+<div class="preview-wrap">
+<div class="preview-box">
+<div style="font-size:.75rem;color:#8b949e;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Chat Preview</div>
+<label style="font-size:.7rem;margin-bottom:4px">Player Nickname</label>
+<input type="text" id="playerNick" value="Fredy_Graces" style="margin-bottom:10px" oninput="updatePreview()">
+<div class="preview-chat" id="previewChat"></div>
+</div>
+
+<div class="preview-box">
+<div style="font-size:.75rem;color:#8b949e;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px">Item Preview</div>
+<div class="preview-item" id="previewItem"></div>
+</div>
+</div>
+</div>
+
+<!-- YAML TAB -->
+<div class="tab-page" id="tab-yaml">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+<span style="font-size:.8rem;color:#8b949e">Generated YAML Output</span>
+<button class="btn btn-sm btn-secondary" onclick="copyYaml()">&#128203; Copiar</button>
+</div>
+<div class="yaml-preview" id="yamlPreview"></div>
+</div>
+
+</div>
+
+<!-- FORMAT PICKER MODAL -->
+<div class="fmt-modal-overlay" id="fmtModal" onclick="if(event.target===this)closeFmtModal()">
+<div class="fmt-modal">
+<div class="fmt-modal-hdr"><span>&#9998; Colores y Formato</span><button onclick="closeFmtModal()">&#10005;</button></div>
+<div class="fmt-modal-target" id="fmtModalTarget"></div>
+<div class="fmt-modal-body" id="fmtModalBody"></div>
+</div>
+</div>
+
+<!-- EMOJI MODAL -->
+<div class="emoji-modal-overlay" id="emojiModal">
+<div class="emoji-modal">
+<div class="emoji-modal-hdr"><span>&#9786; Minecraft Unicode Symbols</span><button onclick="closeEmojiModal()">&#10005;</button></div>
+<div class="emoji-modal-search"><input type="text" id="emojiSearch" placeholder="Search symbol..." oninput="filterEmojis()"></div>
+<div class="emoji-modal-body">
+<div class="emoji-category">Symbols & Icons</div>
+<div class="emoji-grid" id="emojiGrid"></div>
+</div>
+<div class="emoji-modal-footer">Click a symbol to insert it into the Display Text field</div>
+</div>
+</div>
+
+<script>
+// ===== DATA =====
+let dirty = false;
+let allTags = []; // Array of all tag objects
+let currentTagIndex = -1; // Currently editing tag index
+
+// Tag object structure
+function createTagObject() {
+  return {
+    id: document.getElementById('tagId').value || 'mytag',
+    texture: document.getElementById('tagTexture').value,
+    text: document.getElementById('tagText').value,
+    permission: document.getElementById('tagPermission').value,
+    lore: document.getElementById('loreBase').value,
+    noPermMsg: document.getElementById('noPermMessage').value
+  };
+}
+
+function loadTagToObject(tag) {
+  document.getElementById('tagId').value = tag.id;
+  document.getElementById('tagTexture').value = tag.texture;
+  document.getElementById('tagText').value = tag.text;
+  document.getElementById('tagPermission').value = tag.permission;
+  document.getElementById('loreBase').value = tag.lore;
+  document.getElementById('noPermMessage').value = tag.noPermMsg;
+}
+
+function saveCurrentTag() {
+  if (currentTagIndex >= 0 && currentTagIndex < allTags.length) {
+    allTags[currentTagIndex] = createTagObject();
+  }
+}
+
+function addNewTag() {
+  // Save current tag first
+  if (currentTagIndex >= 0) {
+    saveCurrentTag();
+  }
+  
+  // Use current tag as template
+  const template = allTags[currentTagIndex] || {};
+  const newTag = {
+    id: 'newtag' + (allTags.length + 1),
+    texture: template.texture || 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWMwZDU3YzM3MDk4YzY5N2NhOGY4MjIyZjUzNzY1ZTUxYTI5ODNmNDYwM2Y0ZDJiMTdkYjAxZTZjNjhhYjg5ZSJ9fX0=',
+    text: template.text || '&8[&f&8]&f',
+    permission: (template.permission || 'deluxetags.tag.newtag').replace(/\d+$/, '') + (allTags.length + 1),
+    lore: template.lore || '&7New tag description',
+    noPermMsg: template.noPermMsg || '&cYou don\'t have permission for this tag!'
+  };
+  
+  allTags.push(newTag);
+  currentTagIndex = allTags.length - 1;
+  loadTagToObject(newTag);
+  renderTagList();
+  updatePreview();
+  markDirty();
+}
+
+function selectTag(index) {
+  if (index === currentTagIndex) return;
+  
+  // Save current tag
+  if (currentTagIndex >= 0) {
+    saveCurrentTag();
+  }
+  
+  // Load new tag
+  currentTagIndex = index;
+  loadTagToObject(allTags[index]);
+  renderTagList();
+  updatePreview();
+  markDirty();
+}
+
+function deleteTag(index, event) {
+  event.stopPropagation(); // Prevent selectTag from firing
+  
+  if (allTags.length === 1) {
+    alert('You must have at least one tag!');
+    return;
+  }
+  
+  if (!confirm('Delete this tag?')) return;
+  
+  allTags.splice(index, 1);
+  
+  // Adjust current index
+  if (currentTagIndex === index) {
+    currentTagIndex = Math.max(0, index - 1);
+  } else if (currentTagIndex > index) {
+    currentTagIndex--;
+  }
+  
+  // Load the current tag
+  loadTagToObject(allTags[currentTagIndex]);
+  renderTagList();
+  updatePreview();
+  markDirty();
+}
+
+function renderTagList() {
+  const listEl = document.getElementById('tagList');
+  listEl.innerHTML = '';
+  
+  allTags.forEach((tag, index) => {
+    const chip = document.createElement('div');
+    chip.className = 'tag-chip' + (index === currentTagIndex ? ' active' : '');
+    chip.onclick = () => selectTag(index);
+    
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = tag.id;
+    
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'tag-chip-delete';
+    deleteBtn.innerHTML = '×';
+    deleteBtn.title = 'Delete tag';
+    deleteBtn.onclick = (e) => deleteTag(index, e);
+    
+    chip.appendChild(nameSpan);
+    chip.appendChild(deleteBtn);
+    listEl.appendChild(chip);
+  });
+}
+
+const MC_UNICODE = [
+  '★','☆','♥','♦','♣','♠','♪','♫','☀','☁','☂','☃','♩','♬','✎','✉','✦','✧','❄','❅','❆','⚔','⚡','❤','✖','✔','❌','✗','✓',
+  '➡','⬅','⬆','⬇','↗','↘','↙','↖','↔','↕','▶','◀','▲','▼',
+  '●','○','■','□','▪','▫','▬','▭','◆','◇','◈','◉','◊','◐','◑','◒','◓',
+  '∞','±','×','÷','√','∑','∏','∫','∂','∇','∆','∅','∈','∉','∋','∌','∧','∨','¬','⊕','⊗',
+  '€','$','¢','£','¥','₿','ƒ','₩','₪','₫','₭','₮','₯','₰','₱','₲','₳','₴','₵','₸','₹','₺','₻','₼','₽',
+  '§','¶','†','‡','°','•','‣','⁂','⁑','⁕','✱','✲','✳','✴','✵','✶','✷','✸','✹','✺','✻','✼','✽','✾','✿','❀','❁','❂','❃','❇','❈','❉','❊','❋'
+];
+
+const MC_COLORS = [
+  {code:'0',hex:'#000000'},{code:'1',hex:'#0000AA'},{code:'2',hex:'#00AA00'},{code:'3',hex:'#00AAAA'},
+  {code:'4',hex:'#AA0000'},{code:'5',hex:'#AA00AA'},{code:'6',hex:'#FFAA00'},{code:'7',hex:'#AAAAAA'},
+  {code:'8',hex:'#555555'},{code:'9',hex:'#5555FF'},{code:'a',hex:'#55FF55'},{code:'b',hex:'#55FFFF'},
+  {code:'c',hex:'#FF5555'},{code:'d',hex:'#FF55FF'},{code:'e',hex:'#FFFF55'},{code:'f',hex:'#FFFFFF'}
+];
+const MC_FORMATS = [
+  {code:'k',label:'K',title:'Obfuscated'},{code:'l',label:'N',title:'Negrita (Bold)'},
+  {code:'m',label:'S',title:'Tachado (Strikethrough)'},{code:'n',label:'S',title:'Subrayado (Underline)'},
+  {code:'o',label:'I',title:'Cursiva (Italic)'}
+];
+
+// ===== SMALL CAPS =====
+const SC_MAP = {
+  'a':'ᴀ','b':'ʙ','c':'ᴄ','d':'ᴅ','e':'ᴇ','f':'ꜰ','g':'ɢ','h':'ʜ',
+  'i':'ɪ','j':'ᴊ','k':'ᴋ','l':'ʟ','m':'ᴍ','n':'ɴ','o':'ᴏ','p':'ᴘ',
+  'q':'ǫ','r':'ʀ','s':'ꜱ','t':'ᴛ','u':'ᴜ','v':'ᴠ','w':'ᴡ','x':'x',
+  'y':'ʏ','z':'ᴢ'
+};
+
+function toSmallCaps(text){
+  // Preserve Minecraft color codes (&X) and hex colors (&#XXXXXX)
+  // Process character by character, skipping & codes
+  let result = '';
+  let i = 0;
+  while(i < text.length){
+    // Skip & color/format codes
+    if(text[i] === '&' && i+1 < text.length && /[0-9a-fk-or]/i.test(text[i+1])){
+      result += text[i] + text[i+1];
+      i += 2;
+      continue;
+    }
+    // Skip hex colors &#XXXXXX
+    if(text[i] === '&' && i+1 === '#' && i+8 < text.length){
+      result += text.substring(i, i+8);
+      i += 8;
+      continue;
+    }
+    // Convert letter to small caps
+    const lower = text[i].toLowerCase();
+    if(SC_MAP[lower]){
+      result += SC_MAP[lower];
+    } else {
+      result += text[i];
+    }
+    i++;
+  }
+  return result;
+}
+
+// ===== FORMAT MODAL =====
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+let _fmtModalInputId = null;
+let _fmtModalSelStart = 0;
+let _fmtModalSelEnd = 0;
+
+function openFmtModal(inputId, withSC){
+  _fmtModalInputId = inputId;
+  const input = document.getElementById(inputId);
+  if(input){
+    _fmtModalSelStart = input.selectionStart || 0;
+    _fmtModalSelEnd = input.selectionEnd || 0;
+  }
+  const modal = document.getElementById('fmtModal');
+  const body = document.getElementById('fmtModalBody');
+  const target = document.getElementById('fmtModalTarget');
+  const selectedText = input ? input.value.substring(_fmtModalSelStart, _fmtModalSelEnd) : '';
+  target.textContent = 'Campo: ' + inputId;
+  let html = '';
+  // Text editor
+  html += '<div class="fmt-editor-wrap">';
+  html += '<div class="fmt-editor-label"><span>Editor de texto</span><span style="font-size:.6rem;color:#484f58;text-transform:none;letter-spacing:0">Escribe y aplica formato</span></div>';
+  html += `<textarea class="fmt-editor-textarea" id="fmtEditorText" rows="2" placeholder="Escribe aqu\u00ed..." oninput="updateFmtPreview()">${escHtml(selectedText)}</textarea>`;
+  html += '<div class="fmt-editor-preview" id="fmtEditorPreview"></div>';
+  html += '</div>';
+  // Colors section
+  html += '<div class="fmt-section-title">Colores</div>';
+  html += '<div class="fmt-color-grid">';
+  MC_COLORS.forEach(c=>{
+    const tc = ['e','f','7','8','9','a','b'].includes(c.code) ? '#000' : '#fff';
+    html += `<div class="fmt-color" style="background:${c.hex};color:${tc}" title="&${c.code}" onclick="fmtEditorInsert('&${c.code}')">${c.code.toUpperCase()}</div>`;
+  });
+  html += '</div>';
+  // Formats section
+  html += '<div class="fmt-section-title">Formato</div>';
+  html += '<div class="fmt-color-grid">';
+  MC_FORMATS.forEach(f=>{
+    html += `<div class="fmt-color fmt-reset" style="background:#30363d" title="${f.title} (&${f.code})" onclick="fmtEditorInsert('&${f.code}')">${f.label}</div>`;
+  });
+  html += `<div class="fmt-color fmt-reset" style="background:#30363d" title="Reset (&r)" onclick="fmtEditorInsert('&r')">R</div>`;
+  html += '</div>';
+  // Hex section
+  html += '<div class="fmt-section-title">Hex</div>';
+  html += '<div class="fmt-hex-wrap"><input type="color" id="fmtHexPicker" value="#ff5555"><button class="btn btn-secondary btn-sm" style="padding:4px 10px;font-size:.7rem" onclick="fmtEditorInsertHex()">Insertar Hex</button></div>';
+  // Gradient section
+  html += '<div class="fmt-section-title">Gradiente</div>';
+  html += '<div class="fmt-grad-wrap"><input type="color" id="fmtGradStart" value="#8CE9FF" title="Inicio"><span style="color:#484f58;font-size:.75rem">\u2192</span><input type="color" id="fmtGradEnd" value="#9CFF8C" title="Fin"><button class="btn btn-secondary btn-sm" style="padding:4px 10px;font-size:.7rem" onclick="fmtEditorInsertGradient()">Aplicar Gradiente</button></div>';
+  // Emoji section
+  html += '<div class="fmt-section-title">Simbolos</div>';
+  html += '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">';
+  html += '<button class="btn btn-secondary btn-sm" style="padding:6px 12px;font-size:.75rem" onclick="openEmojiModalFromFmt()">&#9786; Insertar Simbolo</button>';
+  html += '<span style="font-size:.65rem;color:#484f58">Selecciona un simbolo unicode</span>';
+  html += '</div>';
+  // Small Caps
+  if(withSC){
+    html += '<div class="fmt-sep" style="width:100%;height:1px;background:#21262d;margin:12px 0"></div>';
+    html += '<button class="sc-toggle" id="fmtSCToggle" onclick="toggleFmtSC()" title="Small Caps" style="width:100%;justify-content:center;padding:8px 12px;font-size:.75rem">SC Small Caps</button>';
+  }
+  // Insert/Cancel buttons
+  html += '<div class="fmt-editor-insert">';
+  html += '<button class="btn btn-secondary" onclick="closeFmtModal()">Cancelar</button>';
+  html += '<button class="btn btn-primary" onclick="commitFmtEditor()">Insertar</button>';
+  html += '</div>';
+  body.innerHTML = html;
+  modal.classList.add('show');
+  const editor = document.getElementById('fmtEditorText');
+  if(editor){
+    editor.focus();
+    editor.setSelectionRange(editor.value.length, editor.value.length);
+    updateFmtPreview();
+  }
+}
+
+function updateFmtPreview(){
+  const editor = document.getElementById('fmtEditorText');
+  const preview = document.getElementById('fmtEditorPreview');
+  if(!editor || !preview) return;
+  const text = editor.value;
+  if(!text){
+    preview.innerHTML = '';
+    preview.style.display = 'none';
+  } else {
+    preview.innerHTML = renderColoredText(text);
+    preview.style.display = 'block';
+  }
+}
+
+function fmtEditorInsert(code){
+  const editor = document.getElementById('fmtEditorText');
+  if(!editor) return;
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const val = editor.value;
+  editor.value = val.substring(0, start) + code + val.substring(end);
+  const newPos = start + code.length;
+  editor.focus();
+  editor.setSelectionRange(newPos, newPos);
+  updateFmtPreview();
+}
+
+function fmtEditorInsertHex(){
+  const picker = document.getElementById('fmtHexPicker');
+  if(!picker) return;
+  fmtEditorInsert('&#' + picker.value.replace('#', ''));
+}
+
+function fmtEditorInsertGradient(){
+  const editor = document.getElementById('fmtEditorText');
+  if(!editor) return;
+  const startColor = document.getElementById('fmtGradStart').value.replace('#', '');
+  const endColor = document.getElementById('fmtGradEnd').value.replace('#', '');
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const val = editor.value;
+  let selectedText = val.substring(start, end) || 'texto';
+  // If SC toggle is active, convert text to small caps
+  const scBtn = document.getElementById('fmtSCToggle');
+  if(scBtn && scBtn.classList.contains('active')){
+    selectedText = toSmallCaps(selectedText);
+  }
+  const gradient = '<gradient:#' + startColor + ':#' + endColor + '>' + selectedText + '</gradient>';
+  editor.value = val.substring(0, start) + gradient + val.substring(end);
+  const newPos = start + gradient.length;
+  editor.focus();
+  editor.setSelectionRange(start, newPos);
+  updateFmtPreview();
+}
+
+function toggleFmtSC(){
+  const btn = document.getElementById('fmtSCToggle');
+  const editor = document.getElementById('fmtEditorText');
+  if(!btn || !editor) return;
+  const isActive = btn.classList.toggle('active');
+  btn.title = isActive ? 'Small Caps: ON' : 'Small Caps: OFF';
+  if(isActive){
+    editor.value = toSmallCaps(editor.value);
+  }
+  updateFmtPreview();
+}
+
+function commitFmtEditor(){
+  const editor = document.getElementById('fmtEditorText');
+  const input = document.getElementById(_fmtModalInputId);
+  if(!editor || !input) { closeFmtModal(); return; }
+  const text = editor.value;
+  if(text){
+    const val = input.value;
+    input.value = val.substring(0, _fmtModalSelStart) + text + val.substring(_fmtModalSelEnd);
+    const newPos = _fmtModalSelStart + text.length;
+    _fmtModalSelStart = newPos;
+    _fmtModalSelEnd = newPos;
+    input.focus();
+    input.setSelectionRange(newPos, newPos);
+    input.dispatchEvent(new Event('input'));
+  }
+  closeFmtModal();
+}
+
+function closeFmtModal(){
+  document.getElementById('fmtModal').classList.remove('show');
+  _fmtModalInputId = null;
+}
+
+// Close format modal on Escape
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape' && document.getElementById('fmtModal').classList.contains('show')) closeFmtModal();
+});
+
+// ===== EMOJI PICKER =====
+let _emojiTargetInputId = null;
+
+function buildEmojiPicker(){
+  const grid = document.getElementById('emojiGrid');
+  if(!grid) return;
+  let html = '';
+  MC_UNICODE.forEach(emoji=>{
+    html += `<button class="emoji-btn" data-symbol="${emoji}" onclick="insertEmoji('${emoji}')" title="${emoji}">${emoji}</button>`;
+  });
+  grid.innerHTML = html;
+}
+
+function openEmojiModal(inputId){
+  _emojiTargetInputId = inputId || null;
+  const modal = document.getElementById('emojiModal');
+  modal.classList.add('show');
+  buildEmojiPicker();
+  setTimeout(()=>document.getElementById('emojiSearch').focus(), 50);
+}
+
+function openEmojiModalFromFmt(){
+  // Open emoji modal to insert into format editor textarea
+  _emojiTargetInputId = '__fmtEditor__';
+  const modal = document.getElementById('emojiModal');
+  modal.classList.add('show');
+  buildEmojiPicker();
+  setTimeout(()=>document.getElementById('emojiSearch').focus(), 50);
+}
+
+function closeEmojiModal(){
+  document.getElementById('emojiModal').classList.remove('show');
+  document.getElementById('emojiSearch').value = '';
+  filterEmojis();
+  _emojiTargetInputId = null;
+}
+
+function filterEmojis(){
+  const search = document.getElementById('emojiSearch').value.toLowerCase();
+  const buttons = document.querySelectorAll('.emoji-btn');
+  buttons.forEach(btn=>{
+    const symbol = btn.getAttribute('data-symbol');
+    btn.style.display = !search || symbol.includes(search) ? '' : 'none';
+  });
+}
+
+function insertEmoji(emoji){
+  // Special case: insert into format editor textarea
+  if(_emojiTargetInputId === '__fmtEditor__'){
+    const editor = document.getElementById('fmtEditorText');
+    if(!editor) return;
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const val = editor.value;
+    editor.value = val.substring(0, start) + emoji + val.substring(end);
+    const newPos = start + emoji.length;
+    editor.focus();
+    editor.setSelectionRange(newPos, newPos);
+    updateFmtPreview();
+    return;
+  }
+  // Normal case: insert into original input
+  if(_emojiTargetInputId){
+    const input = document.getElementById(_emojiTargetInputId);
+    if(input){
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      const val = input.value;
+      input.value = val.substring(0, start) + emoji + val.substring(end);
+      const newPos = start + emoji.length;
+      input.focus();
+      input.setSelectionRange(newPos, newPos);
+      input.dispatchEvent(new Event('input'));
+      return;
+    }
+  }
+  // Fallback: insert into active element
+  const activeEl = document.activeElement;
+  if(activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')){
+    const start = activeEl.selectionStart;
+    const end = activeEl.selectionEnd;
+    const val = activeEl.value;
+    activeEl.value = val.substring(0, start) + emoji + val.substring(end);
+    activeEl.focus();
+    activeEl.setSelectionRange(start + emoji.length, start + emoji.length);
+    activeEl.dispatchEvent(new Event('input'));
+  } else {
+    const input = document.getElementById('tagText');
+    if(input){
+      const pos = input.selectionStart || 0;
+      const val = input.value;
+      input.value = val.substring(0, pos) + emoji + val.substring(pos);
+      input.focus();
+      input.setSelectionRange(pos + emoji.length, pos + emoji.length);
+      input.dispatchEvent(new Event('input'));
+    }
+  }
+}
+
+// ===== PREVIEW =====
+function renderColoredText(s){
+  if(!s) return '';
+  const colorMap = {'0':'#000000','1':'#0000AA','2':'#00AA00','3':'#00AAAA','4':'#AA0000','5':'#AA00AA','6':'#FFAA00','7':'#AAAAAA','8':'#555555','9':'#5555FF','a':'#55FF55','b':'#55FFFF','c':'#FF5555','d':'#FF55FF','e':'#FFFF55','f':'#FFFFFF'};
+  const formatMap = {'l':'font-weight:bold','o':'font-style:italic','n':'text-decoration:underline','m':'text-decoration:line-through'};
+  const HEX_OPEN = '\u0001HX\u0002';
+  const HEX_CLOSE = '\u0003';
+  const GRAD_OPEN = '\u0001GD\u0002';
+  const GRAD_CLOSE = '\u0001EG\u0002';
+  let processed = s.replace(/&#([0-9a-fA-F]{6})/g, HEX_OPEN + '#$1' + HEX_CLOSE);
+  processed = processed.replace(/<gradient:#[0-9a-fA-F]{6}:#[0-9a-fA-F]{6}>/g, function(m){
+    const colors = m.match(/#[0-9a-fA-F]{6}/g);
+    return GRAD_OPEN + colors[0] + ':' + colors[1] + GRAD_CLOSE;
+  });
+  processed = processed.replace(/<\/gradient>/g, GRAD_CLOSE);
+  let html = '';
+  let currentStyle = '';
+  let i = 0;
+  while(i < processed.length){
+    if(processed.substr(i, HEX_OPEN.length) === HEX_OPEN){
+      const end = processed.indexOf(HEX_CLOSE, i + HEX_OPEN.length);
+      if(end > 0){
+        const hexCode = processed.substring(i + HEX_OPEN.length, end);
+        html += '</span><span style="' + currentStyle + 'color:' + hexCode + '">';
+        i = end + HEX_CLOSE.length; continue;
+      }
+    }
+    if(processed.substr(i, GRAD_OPEN.length) === GRAD_OPEN){
+      const end = processed.indexOf(GRAD_CLOSE, i + GRAD_OPEN.length);
+      if(end > 0){
+        const gradColors = processed.substring(i + GRAD_OPEN.length, end);
+        html += '</span><span style="' + currentStyle + 'background:linear-gradient(90deg,' + gradColors.replace(':',',') + ');-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">';
+        i = end + GRAD_CLOSE.length; continue;
+      }
+    }
+    if(processed.substr(i, GRAD_CLOSE.length) === GRAD_CLOSE){
+      html += '</span><span style="' + currentStyle + '">';
+      i += GRAD_CLOSE.length; continue;
+    }
+    if(processed[i] === '&' && i+1 < processed.length){
+      const code = processed[i+1].toLowerCase();
+      if(colorMap[code]){
+        currentStyle = currentStyle.replace(/color:[^;]+;?/g, '');
+        html += '</span><span style="color:' + colorMap[code] + ';' + currentStyle + '">';
+        i += 2; continue;
+      }
+      if(formatMap[code]){
+        currentStyle += formatMap[code] + ';';
+        html += '</span><span style="' + currentStyle + '">';
+        i += 2; continue;
+      }
+      if(code === 'r'){
+        currentStyle = '';
+        html += '</span><span>';
+        i += 2; continue;
+      }
+    }
+    const ch = processed[i];
+    html += ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch === '&' ? '&amp;' : ch;
+    i++;
+  }
+  return html;
+}
+
+function updatePreview(){
+  const nick = document.getElementById('playerNick').value || 'Fredy_Graces';
+  const tagText = document.getElementById('tagText').value;
+  const loreBase = document.getElementById('loreBase').value;
+
+  // Chat preview: TAG PlayerName (no automatic brackets)
+  const chatHtml = `${renderColoredText(tagText)} <span style="color:#FFFFFF">${nick}</span>`;
+  document.getElementById('previewChat').innerHTML = chatHtml;
+
+  // Item preview (single, no states, no {RIGHT-CLICK-TO-PREVIEW-MESSAGE})
+  const loreClean = loreBase.split('\n').filter(line => !line.includes('{RIGHT-CLICK-TO-PREVIEW-MESSAGE}')).join('\n');
+  document.getElementById('previewItem').innerHTML = `
+    <div class="preview-item-icon">👤</div>
+    <div class="preview-item-name">${renderColoredText(tagText)}</div>
+    <div class="preview-item-lore">${loreClean.split('\n').map(l=>renderColoredText(l)).join('<br>')}</div>
+  `;
+}
+
+// ===== YAML GENERATOR =====
+function markDirty(){
+  dirty=true;
+  updateLiveYaml();
+}
+
+function yamlStr(s){
+  if(!s) return "''";
+  if(s.includes("'")) return `"${s}"`;
+  if(s.includes(':')||s.includes('#')||s.includes('{')||s.includes('[')) return `'${s}'`;
+  return `'${s}'`;
+}
+
+function generateYaml(){
+  // Save current tag first
+  saveCurrentTag();
+  
+  let y = 'Tags:\n';
+  
+  // Generate YAML for all tags
+  allTags.forEach(tag => {
+    const loreLocked = tag.lore + '\n\n{RIGHT-CLICK-TO-PREVIEW-MESSAGE}\n&e ➥ &c¡No disponible!';
+    const loreUnlocked = tag.lore + '\n\n{RIGHT-CLICK-TO-PREVIEW-MESSAGE}\n&e ➥ &a¡Clic izquierdo para activar!';
+    const loreSelected = tag.lore + '\n\n&e ➥ &6¡Seleccionado!';
+
+    y += `  ${tag.id}:\n`;
+    y += `    Material: CUSTOM_HEAD\n`;
+    y += `    Texture: ${tag.texture}\n`;
+    y += `    Custom-model-data: 0\n`;
+    y += `    Tag: ${yamlStr(tag.text + '&f')}\n`;
+    y += `    Displayname: ${yamlStr(tag.text + '&f')}\n`;
+    y += `    Permission: ${tag.permission}\n`;
+    y += `    Lore:\n`;
+    y += `      Locked:\n`;
+    loreLocked.split('\n').forEach(line=>{ y += `      - ${yamlStr(line)}\n`; });
+    y += `      Unlocked:\n`;
+    loreUnlocked.split('\n').forEach(line=>{ y += `      - ${yamlStr(line)}\n`; });
+    y += `      Selected:\n`;
+    loreSelected.split('\n').forEach(line=>{ y += `      - ${yamlStr(line)}\n`; });
+    y += `    No-permission-message: ${yamlStr(tag.noPermMsg)}\n`;
+    y += `    Recognition-title: ''\n`;
+    y += `    Dyeable: false\n`;
+    y += `    Price: 0\n`;
+    y += `    Cost:\n      Type: VAULT\n      Material: DIAMOND\n`;
+    y += `    Default-color: ''\n`;
+    y += `    Hide-flags: true\n`;
+    y += `    Unbreakable: false\n`;
+    y += `    Not-enough-money-message: ''\n`;
+    y += `    Purchase-commands: []\n`;
+    y += `    Select-commands:\n      Pre: []\n      Post: []\n`;
+  });
+  
+  return y;
+}
+
+function highlightYaml(y){
+  return y
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^(\s*)([\w'-]+)(:)/gm,'$1<span class="k">$2</span>$3')
+    .replace(/'([^']*)'/g,"'<span class=\"v\">$1</span>'")
+    .replace(/#(.*)$/gm,'<span class="c">#$1</span>');
+}
+
+function generateYamlPreview(){
+  document.getElementById('yamlPreview').innerHTML = highlightYaml(generateYaml());
+}
+
+function updateLiveYaml(){
+  document.getElementById('yamlPreview').innerHTML = highlightYaml(generateYaml());
+}
+
+function copyYaml(){
+  navigator.clipboard.writeText(generateYaml());
+}
+
+function exportYaml(){
+  const blob = new Blob([generateYaml()],{type:'text/yaml'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'tags.yml';
+  a.click();
+}
+
+// ===== TABS =====
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='yaml') generateYamlPreview();
+  if(tab==='preview') updatePreview();
+}
+
+// ===== INIT =====
+buildEmojiPicker();
+
+// Initialize with the first tag from the form
+allTags.push(createTagObject());
+currentTagIndex = 0;
+renderTagList();
+
+updatePreview();
+updateLiveYaml();
+
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape' && document.getElementById('emojiModal').classList.contains('show')) closeEmojiModal();
+});
+document.getElementById('emojiModal').addEventListener('click', function(e){
+  if(e.target===this) closeEmojiModal();
+});
+</script>
+</body>
+</html>
+play.minelatino.com | minelatino.shop

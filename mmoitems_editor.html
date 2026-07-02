@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MMOItems Visual Editor</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#c9d1d9;font-family:'Segoe UI',system-ui,sans-serif;height:100vh;overflow:hidden}
+.app{display:flex;height:100vh}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#0d1117}
+::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
+.panel{background:#161b22;border-right:1px solid #21262d;display:flex;flex-direction:column;overflow:visible}
+.panel:last-child{border-right:none;border-left:1px solid #21262d}
+.panel-hdr{padding:12px 14px;border-bottom:1px solid #21262d;font-size:.75rem;text-transform:uppercase;letter-spacing:1.5px;color:#8b949e;font-weight:600;flex-shrink:0}
+.panel-body{flex:1;overflow-y:auto;padding:12px}
+h1{font-size:.95rem;color:#58a6ff;margin-bottom:10px}
+label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.8px;color:#8b949e;margin:10px 0 4px}
+input,select,textarea{width:100%;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:7px 9px;color:#c9d1d9;font-size:.85rem;outline:none;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:#58a6ff}
+textarea{resize:vertical;min-height:60px;font-family:'Cascadia Code','Fira Code',monospace;font-size:.8rem}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.btn{padding:8px 14px;border:none;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;transition:all .15s}
+.btn-primary{background:#238636;color:#fff}.btn-primary:hover{background:#2ea043}
+.btn-secondary{background:#21262d;color:#c9d1d9}.btn-secondary:hover{background:#30363d}
+.btn-danger{background:#da3633;color:#fff}.btn-danger:hover{background:#f85149}
+.btn-sm{padding:5px 10px;font-size:.75rem}
+.btn-block{width:100%;margin-top:8px}
+
+/* Center */
+.center{display:flex;flex-direction:column;overflow:hidden;background:#0d1117;flex:1;min-width:0}
+.toolbar{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid #21262d;flex-shrink:0;align-items:center}
+.toolbar .sep{width:1px;height:20px;background:#30363d}
+.tab-bar{display:flex;border-bottom:1px solid #21262d;flex-shrink:0}
+.tab{padding:10px 18px;font-size:.8rem;color:#8b949e;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.tab:hover{color:#c9d1d9}
+.tab.active{color:#58a6ff;border-bottom-color:#58a6ff}
+.tab-content{flex:1;overflow-y:auto;padding:16px}
+.tab-page{display:none}
+.tab-page.active{display:block}
+
+/* Properties */
+.prop-section{margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #21262d}
+.prop-section:last-child{border-bottom:none}
+.prop-title{font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:#58a6ff;margin-bottom:10px;font-weight:600}
+
+/* Toggle Switch */
+.toggle-wrap{display:flex;align-items:center;gap:10px;margin:8px 0}
+.toggle{position:relative;width:40px;height:22px;background:#30363d;border-radius:11px;cursor:pointer;transition:background .2s;flex-shrink:0;border:none;padding:0}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;background:#8b949e;border-radius:50%;transition:all .2s}
+.toggle.on{background:#238636}
+.toggle.on::after{left:21px;background:#55ff55}
+.toggle-label{font-size:.8rem;color:#c9d1d9}
+
+/* Item Preview */
+.item-preview{width:100%;padding:16px;background:#0d1117;border:1px solid #30363d;border-radius:8px;text-align:center;margin-bottom:10px;display:flex;flex-direction:column;align-items:center}
+.item-preview .item-icon{font-size:2rem;margin-bottom:8px;display:flex;justify-content:center;align-items:center}
+.item-preview .item-icon img{display:block;margin:0 auto;width:48px;height:48px;image-rendering:pixelated}
+.item-preview .item-name{font-size:.85rem;font-weight:600}
+.item-preview .item-lore{font-size:.75rem;color:#8b949e;margin-top:6px;white-space:pre-line}
+
+/* YAML Preview */
+.yaml-preview{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:14px;font-family:'Cascadia Code','Fira Code',monospace;font-size:.78rem;line-height:1.6;white-space:pre;overflow:auto;color:#7ee787;max-height:calc(100vh - 140px)}
+
+/* Enchant List */
+.enchant-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.enchant-row{display:flex;align-items:center;gap:6px;background:#161b22;border:1px solid #21262d;border-radius:6px;padding:6px 8px}
+.enchant-row label{margin:0;font-size:.72rem;color:#c9d1d9;flex:1;text-transform:none;letter-spacing:0}
+.enchant-row input{width:50px;text-align:center;padding:4px;font-size:.75rem}
+
+/* Ability Card */
+.ability-card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:12px;margin-bottom:8px;border-left:3px solid #f0883e}
+.ability-card-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ability-card-hdr span{font-size:.75rem;font-weight:600;color:#f0883e}
+
+/* Material Picker Modal */
+.mat-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;display:none;align-items:center;justify-content:center}
+.mat-modal-overlay.show{display:flex}
+.mat-modal{background:#161b22;border:1px solid #30363d;border-radius:12px;width:680px;max-width:90vw;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.mat-modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #21262d;flex-shrink:0}
+.mat-modal-hdr span{font-size:.85rem;font-weight:600;color:#58a6ff}
+.mat-modal-hdr button{background:none;border:none;color:#8b949e;font-size:1.2rem;cursor:pointer;padding:4px 8px;border-radius:4px}
+.mat-modal-hdr button:hover{color:#f85149;background:#21262d}
+.mat-modal-search{padding:10px 18px;border-bottom:1px solid #21262d;flex-shrink:0}
+.mat-modal-search input{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:8px 12px;color:#c9d1d9;font-size:.85rem;width:100%;outline:none}
+.mat-modal-search input:focus{border-color:#58a6ff}
+.mat-modal-body{flex:1;overflow-y:auto;padding:12px 18px}
+.mat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px}
+.mat-grid-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #2d5a3d;border-radius:6px;cursor:pointer;transition:all .12s;font-size:.75rem;color:#c9d1d9;background:#2d5a3d}
+.mat-grid-item:hover{border-color:#58a6ff;background:#3d7a4d}
+.mat-grid-item .mat-dot{width:14px;height:14px;border-radius:3px;flex-shrink:0}
+.mat-grid-item .mat-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mat-modal-footer{padding:10px 18px;border-top:1px solid #21262d;flex-shrink:0;text-align:center;font-size:.75rem;color:#484f58}
+.mat-field-wrap{display:flex;gap:4px;align-items:center}
+.mat-field-wrap input{flex:1}
+.mat-field-wrap .btn{flex-shrink:0;padding:5px 8px;font-size:.75rem;white-space:nowrap}
+
+/* Format Modal */
+.fmt-popup-btn{width:28px;height:28px;border:1px solid #30363d;border-radius:4px;background:linear-gradient(135deg,#ff5555 25%,#55ff55 25%,#55ff55 50%,#5555ff 50%,#5555ff 75%,#ffff55 75%);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000;flex-shrink:0;transition:all .15s}
+.fmt-popup-btn:hover{border-color:#58a6ff;transform:scale(1.08)}
+.fmt-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;display:none;align-items:center;justify-content:center}
+.fmt-modal-overlay.show{display:flex}
+.fmt-modal{background:#161b22;border:1px solid #30363d;border-radius:12px;width:420px;max-width:90vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.fmt-modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #21262d;flex-shrink:0}
+.fmt-modal-hdr span{font-size:.85rem;font-weight:600;color:#58a6ff}
+.fmt-modal-hdr button{background:none;border:none;color:#8b949e;font-size:1.2rem;cursor:pointer;padding:4px 8px;border-radius:4px}
+.fmt-modal-hdr button:hover{color:#f85149;background:#21262d}
+.fmt-modal-body{flex:1;overflow-y:auto;padding:14px 16px}
+.fmt-modal-target{font-size:.7rem;color:#484f58;padding:0 16px 10px;border-bottom:1px solid #21262d;font-style:italic}
+.fmt-editor-wrap{margin-bottom:12px}
+.fmt-editor-label{font-size:.65rem;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.fmt-editor-textarea{width:100%;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:8px 10px;color:#c9d1d9;font-family:'Cascadia Code','Fira Code',monospace;font-size:.8rem;resize:vertical;min-height:48px;outline:none;box-sizing:border-box}
+.fmt-editor-textarea:focus{border-color:#58a6ff}
+.fmt-editor-preview{background:#1a1a2e;border:1px solid #30363d;border-radius:6px;padding:8px 10px;margin-top:6px;min-height:32px;font-size:.85rem;line-height:1.5;font-family:'Courier New',monospace;text-shadow:1px 1px 0 rgba(0,0,0,.5)}
+.fmt-editor-preview:empty::before{content:'Vista previa...';color:#484f58;font-style:italic}
+.fmt-editor-insert{display:flex;gap:8px;margin-top:10px}
+.fmt-editor-insert .btn{flex:1;padding:8px;font-size:.8rem;font-weight:600}
+.fmt-section-title{font-size:.65rem;color:#484f58;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid #21262d}
+.fmt-section-title:first-child{margin-top:0}
+.fmt-color-grid{display:flex;flex-wrap:wrap;gap:4px}
+.fmt-color{width:28px;height:28px;border:1px solid #30363d;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;transition:all .1s;flex-shrink:0}
+.fmt-color:hover{border-color:#58a6ff;transform:scale(1.15)}
+.fmt-sep{width:1px;height:18px;background:#30363d;margin:0 3px;flex-shrink:0}
+.fmt-hex-wrap{display:flex;align-items:center;gap:4px;margin-top:4px;flex-shrink:0}
+.fmt-hex-wrap input[type="color"]{width:28px;height:28px;border:1px solid #30363d;border-radius:3px;cursor:pointer;padding:0;background:none}
+.fmt-hex-wrap input[type="color"]::-webkit-color-swatch-wrapper{padding:1px}
+.fmt-hex-wrap input[type="color"]::-webkit-color-swatch{border:none;border-radius:2px}
+.fmt-grad-wrap{display:flex;align-items:center;gap:4px;margin-top:4px;flex-wrap:wrap;flex-shrink:0}
+.fmt-grad-wrap input[type="color"]{width:28px;height:28px;border:1px solid #30363d;border-radius:3px;cursor:pointer;padding:0;background:none}
+.fmt-grad-wrap input[type="color"]::-webkit-color-swatch-wrapper{padding:1px}
+.fmt-grad-wrap input[type="color"]::-webkit-color-swatch{border:none;border-radius:2px}
+.fmt-grad-wrap .btn{padding:3px 6px;font-size:.65rem}
+.fmt-reset{background:#30363d!important;color:#c9d1d9!important;font-size:.6rem!important;width:22px!important;height:22px!important}
+
+/* Emoji Modal */
+.emoji-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;display:none;align-items:center;justify-content:center}
+.emoji-modal-overlay.show{display:flex}
+.emoji-modal{background:#161b22;border:1px solid #30363d;border-radius:12px;width:480px;max-width:90vw;max-height:70vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.emoji-modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #21262d;flex-shrink:0}
+.emoji-modal-hdr span{font-size:.85rem;font-weight:600;color:#58a6ff}
+.emoji-modal-hdr button{background:none;border:none;color:#8b949e;font-size:1.2rem;cursor:pointer;padding:4px 8px;border-radius:4px}
+.emoji-modal-hdr button:hover{color:#f85149;background:#21262d}
+.emoji-modal-search{padding:10px 18px;border-bottom:1px solid #21262d;flex-shrink:0}
+.emoji-modal-search input{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:8px 12px;color:#c9d1d9;font-size:.85rem;width:100%;outline:none}
+.emoji-modal-body{flex:1;overflow-y:auto;padding:12px 18px}
+.emoji-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:4px;padding:4px}
+.emoji-btn{width:36px;height:36px;border:1px solid #30363d;border-radius:4px;background:#161b22;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.2rem;transition:all .1s}
+.emoji-btn:hover{border-color:#58a6ff;background:#1a2332;transform:scale(1.1)}
+.emoji-category{font-size:.7rem;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin:8px 0 4px;font-weight:600}
+.emoji-modal-footer{padding:10px 18px;border-top:1px solid #21262d;flex-shrink:0;text-align:center;font-size:.75rem;color:#484f58}
+
+/* YAML section */
+.yaml-section-hdr{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-bottom:1px solid #21262d;flex-shrink:0}
+.yaml-section-body{flex:1;overflow:auto;padding:0;display:none}
+.yaml-section-body.show{display:block}
+
+.drag-handle{width:5px;background:#21262d;cursor:col-resize;flex-shrink:0;transition:background .15s}
+.drag-handle:hover,.drag-handle.dragging{background:#58a6ff}
+
+/* Category list */
+.cat-list{flex:1;overflow-y:auto}
+.cat-item{padding:8px 12px;border-bottom:1px solid #21262d;cursor:pointer;font-size:.8rem;transition:background .1s;display:flex;align-items:center;gap:8px}
+.cat-item:hover{background:#1a2332}
+.cat-item.active{background:#1a2332;border-left:3px solid #58a6ff}
+.cat-item .cat-icon{font-size:.7rem;color:#58a6ff;width:18px;text-align:center}
+.cat-custom{border-left:3px solid #f0883e}
+
+/* Empty state */
+.empty-state{text-align:center;padding:40px 20px;color:#484f58}
+.empty-state .icon{font-size:2.5rem;margin-bottom:10px}
+.empty-state p{font-size:.85rem}
+
+/* Conditional sections */
+.collapsible-hdr{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#161b22;border:1px solid #21262d;border-radius:6px;cursor:pointer;user-select:none;margin-bottom:6px;transition:background .15s}
+.collapsible-hdr:hover{background:#1a2332}
+.collapsible-hdr span{font-size:.75rem;font-weight:600;color:#f0883e}
+.collapsible-hdr .collapse-icon{font-size:.7rem;color:#484f58;transition:transform .2s}
+.collapsible-hdr .collapse-icon.collapsed{transform:rotate(-90deg)}
+.collapsible-body{display:none;padding:8px 0}
+.collapsible-body.show{display:block}
+</style>
+</head>
+<body>
+<div class="app">
+<!-- LEFT PANEL -->
+<div class="panel" id="leftPanel" style="width:260px;min-width:200px;max-width:400px;flex-shrink:0">
+<div class="panel-hdr">Categoria <button class="btn btn-sm btn-primary" style="float:right" onclick="addNewItem()">+ Item</button></div>
+<div style="padding:8px 12px;border-bottom:1px solid #21262d;flex-shrink:0">
+<label>Categoria</label>
+<select id="categorySelect" onchange="onCategoryChange()">
+<option value="accessory">accessory</option>
+<option value="amuleto">amuleto</option>
+<option value="anillo">anillo</option>
+<option value="armor">armor</option>
+<option value="axe">axe</option>
+<option value="block">block</option>
+<option value="bow">bow</option>
+<option value="brazalete">brazalete</option>
+<option value="catalyst">catalyst</option>
+<option value="coleccionables">coleccionables</option>
+<option value="collar">collar</option>
+<option value="consumable">consumable</option>
+<option value="cosmeticos">cosmeticos</option>
+<option value="cosmeticosvip">cosmeticosvip</option>
+<option value="crossbow">crossbow</option>
+<option value="dagger">dagger</option>
+<option value="depaga">depaga</option>
+<option value="gauntlet">gauntlet</option>
+<option value="gem_stone">gem_stone</option>
+<option value="greataxe">greataxe</option>
+<option value="greatbow">greatbow</option>
+<option value="greathammer">greathammer</option>
+<option value="greatstaff">greatstaff</option>
+<option value="greatsword">greatsword</option>
+<option value="guantes">guantes</option>
+<option value="halberd">halberd</option>
+<option value="hammer">hammer</option>
+<option value="katana">katana</option>
+<option value="kits">kits</option>
+<option value="lance">lance</option>
+<option value="long_sword">long_sword</option>
+<option value="lute">lute</option>
+<option value="material">material</option>
+<option value="minelat">minelat</option>
+<option value="miscellaneous">miscellaneous</option>
+<option value="musket">musket</option>
+<option value="off_catalyst">off_catalyst</option>
+<option value="ornament">ornament</option>
+<option value="sf">sf</option>
+<option value="sh">sh</option>
+<option value="shield">shield</option>
+<option value="skin">skin</option>
+<option value="spear">spear</option>
+<option value="staff">staff</option>
+<option value="stave">stave</option>
+<option value="sword" selected>sword</option>
+<option value="talisman">talisman</option>
+<option value="thrusting_sword">thrusting_sword</option>
+<option value="tome">tome</option>
+<option value="tool">tool</option>
+<option value="vip">vip</option>
+<option value="vip2">vip2</option>
+<option value="wand">wand</option>
+<option value="whip">whip</option>
+<option value="__custom__">+ Custom...</option>
+</select>
+<div id="customCatWrap" style="display:none;margin-top:6px">
+<input type="text" id="customCatInput" placeholder="Nombre de categoria custom">
+</div>
+</div>
+<div class="panel-hdr">Items</div>
+<div class="cat-list" id="itemList">
+<div class="empty-state"><div class="icon">&#9874;</div><p>Crea items con + Item</p></div>
+</div>
+</div>
+<div class="drag-handle" id="dragHandle"></div>
+
+<!-- EDITOR -->
+<div class="center">
+<div class="toolbar">
+<h1 style="margin:0;font-size:.85rem">&#9874; MineLatino | MMOItems Editor</h1>
+<div style="flex:1"></div>
+<button class="btn btn-primary" id="yamlToggleBtn" onclick="toggleYaml()">&#128196; YAML</button>
+<button class="btn btn-secondary" onclick="exportYaml()">Descargar .yml</button>
+</div>
+<div class="tab-bar">
+<div class="tab active" data-tab="general" onclick="switchTab('general')">&#9881; General</div>
+<div class="tab" data-tab="display" onclick="switchTab('display')">&#127912; Display</div>
+<div class="tab" data-tab="stats" onclick="switchTab('stats')">&#9876; Stats</div>
+<div class="tab" data-tab="enchants" onclick="switchTab('enchants')">&#10024; Encantos</div>
+<div class="tab" data-tab="abilities" onclick="switchTab('abilities')">&#9889; Habilidades</div>
+<div class="tab" data-tab="restrictions" onclick="switchTab('restrictions')">&#128274; Restricciones</div>
+<div class="tab" data-tab="modeldata" onclick="switchTab('modeldata')">&#128736; CustomModel</div>
+</div>
+<div class="tab-content">
+<!-- GENERAL TAB -->
+<div class="tab-page active" id="tab-general">
+<div id="generalEmpty" class="empty-state"><div class="icon">&#9874;</div><p>Selecciona o crea un item</p></div>
+<div id="generalEditor" style="display:none">
+<div class="prop-section">
+<div class="prop-title">Identificacion</div>
+<label>Item ID</label>
+<input type="text" id="itemId" value="" oninput="markDirty()" placeholder="MI_ITEM_ID">
+<label>Revision ID (solo numeros)</label>
+<input type="number" id="revisionId" value="1" min="1" oninput="markDirty()">
+</div>
+<div class="prop-section">
+<div class="prop-title">Material Base</div>
+<label>Material (item de Minecraft)</label>
+<div class="mat-field-wrap">
+<input type="text" id="itemMaterial" value="DIAMOND_SWORD" oninput="updatePreview();markDirty();toggleHeadTexture()">
+<button class="btn btn-secondary btn-sm" onclick="openMaterialPicker(function(item){document.getElementById('itemMaterial').value=item;updatePreview();markDirty();toggleHeadTexture()},this.previousElementSibling.value)">&#9638; Buscar</button>
+</div>
+<div id="headTextureWrap" style="display:none">
+<label>Player Head Texture (Base64)</label>
+<textarea id="skullTexture" rows="2" oninput="markDirty()" placeholder="eyJ0ZXh0dXJlcyI6..."></textarea>
+<label>Skull UUID</label>
+<input type="text" id="skullUuid" oninput="markDirty()" placeholder="be4088fe-2854-47cc-9110-bbc0cc816b01">
+</div>
+</div>
+<div class="prop-section">
+<div class="prop-title">Tooltip</div>
+<label>Tooltip Style</label>
+<input type="text" id="tooltipStyle" oninput="markDirty()" placeholder="mmoitems:animados/common">
+</div>
+<div class="prop-section">
+<div class="prop-title">Tipo de Item</div>
+<div class="toggle-wrap">
+<button class="toggle" id="consumibleToggle" onclick="toggleConsumible()"></button>
+<span class="toggle-label">Comandos (ejecuta comandos al usar)</span>
+</div>
+</div>
+</div>
+</div>
+
+<!-- DISPLAY TAB -->
+<div class="tab-page" id="tab-display">
+<div id="displayEmpty" class="empty-state"><div class="icon">&#127912;</div><p>Selecciona o crea un item</p></div>
+<div id="displayEditor" style="display:none">
+<div class="prop-section">
+<div class="prop-title">Vista Previa</div>
+<div class="item-preview" id="itemPreview">
+<div class="item-icon" id="prevIcon"><img id="prevIconImg" src="" onerror="wikiImgError(this)" style="display:none"><div id="prevIconFallback" style="font-size:2rem">&#9874;</div></div>
+<div class="item-name" id="prevName">Item Name</div>
+<div class="item-lore" id="prevLore"></div>
+</div>
+</div>
+<div class="prop-section">
+<div class="prop-title">Nombre del Item</div>
+<label>Nombre (con codigos de color)</label>
+<div style="display:flex;gap:6px;align-items:center">
+<input type="text" id="itemName" value="" oninput="updatePreview();markDirty()" placeholder="&e&lMi Item">
+<button class="fmt-popup-btn" onclick="openFmtModal('itemName')" title="Colores y formato">A</button>
+</div>
+</div>
+<div class="prop-section">
+<div class="prop-title">Lore</div>
+<label>Lore (una linea por fila)</label>
+<div style="display:flex;gap:6px;align-items:flex-start">
+<textarea id="itemLore" rows="8" oninput="updatePreview();markDirty()" placeholder="&7Linea 1&#10;&7Linea 2" style="flex:1"></textarea>
+<button class="fmt-popup-btn" onclick="openFmtModal('itemLore')" title="Colores y formato" style="align-self:flex-start">A</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- STATS TAB -->
+<div class="tab-page" id="tab-stats">
+<div id="statsEmpty" class="empty-state"><div class="icon">&#9876;</div><p>Selecciona o crea un item</p></div>
+<div id="statsEditor" style="display:none">
+<div class="prop-section">
+<div class="prop-title">Combate</div>
+<div class="row">
+<div><label>Attack Damage (simple)</label><input type="number" id="attackDmgSimple" step="0.1" oninput="markDirty()" placeholder="e.j. 30.0"></div>
+</div>
+<div class="toggle-wrap">
+<button class="toggle" id="atkDmgRangeToggle" onclick="toggleAtkDmgRange()"></button>
+<span class="toggle-label">Usar rango Min/Max</span>
+</div>
+<div id="atkDmgRangeWrap" style="display:none">
+<div class="row">
+<div><label>Min Damage</label><input type="number" id="atkDmgMin" step="0.1" oninput="markDirty()"></div>
+<div><label>Max Damage</label><input type="number" id="atkDmgMax" step="0.1" oninput="markDirty()"></div>
+</div>
+</div>
+<div class="row">
+<div><label>Armor</label><input type="number" id="armor" step="0.1" oninput="markDirty()"></div>
+<div><label>Defense</label><input type="number" id="defense" step="0.1" oninput="markDirty()"></div>
+<div><label>Max Health</label><input type="number" id="maxHealth" step="0.1" oninput="markDirty()"></div>
+</div>
+<div class="row">
+<div><label>PvP Damage</label><input type="number" id="pvpDmg" step="0.1" oninput="markDirty()"></div>
+<div><label>PvE Damage</label><input type="number" id="pveDmg" step="0.1" oninput="markDirty()"></div>
+</div>
+<div class="row">
+<div><label>Critical Strike Chance (%)</label><input type="number" id="critChance" step="0.1" oninput="markDirty()"></div>
+<div><label>Critical Strike Power (%)</label><input type="number" id="critPower" step="0.1" oninput="markDirty()"></div>
+</div>
+<div class="row">
+<div><label>Block Power (%)</label><input type="number" id="blockPower" step="0.1" oninput="markDirty()"></div>
+<div><label>Dodge Chance (%)</label><input type="number" id="dodgeChance" step="0.1" oninput="markDirty()"></div>
+</div>
+<div class="row">
+<div><label>Mining Efficiency</label><input type="number" id="miningEff" step="0.1" oninput="markDirty()"></div>
+<div><label>Submerged Mining Speed</label><input type="number" id="submergedMining" step="0.1" oninput="markDirty()"></div>
+</div>
+</div>
+<div class="prop-section">
+<div class="prop-title">Durabilidad</div>
+<div class="row">
+<div><label>Max Durability</label><input type="number" id="maxDurability" step="1" oninput="markDirty()"></div>
+<div><label>Durability (custom)</label><input type="number" id="durability" step="1" oninput="markDirty()"></div>
+</div>
+<div class="toggle-wrap">
+<button class="toggle" id="durabilityBarToggle" onclick="this.classList.toggle('on');markDirty()"></button>
+<span class="toggle-label">Durability Bar</span>
+</div>
+<div class="toggle-wrap">
+<button class="toggle" id="willBreakToggle" onclick="this.classList.toggle('on');markDirty()"></button>
+<span class="toggle-label">Will Break (se rompe al llegar a 0)</span>
+</div>
+</div>
+<div class="prop-section">
+<div class="prop-title">Consumo / Restauracion</div>
+<div class="row">
+<div><label>Restore Health</label><input type="number" id="restoreHealth" step="0.1" oninput="markDirty()"></div>
+<div><label>Restore Food</label><input type="number" id="restoreFood" step="0.1" oninput="markDirty()"></div>
+</div>
+<div class="row">
+<div><label>Restore Saturation</label><input type="number" id="restoreSaturation" step="0.1" oninput="markDirty()"></div>
+<div><label>Restore Mana</label><input type="number" id="restoreMana" step="0.1" oninput="markDirty()"></div>
+</div>
+<div class="row">
+<div><label>Restore Stamina</label><input type="number" id="restoreStamina" step="0.1" oninput="markDirty()"></div>
+<div><label>Item Cooldown (seg)</label><input type="number" id="itemCooldown" step="0.1" oninput="markDirty()"></div>
+</div>
+</div>
+<div class="prop-section">
+<div class="prop-title">Otros</div>
+<div class="row">
+<div><label>Repair (%)</label><input type="number" id="repair" step="0.1" oninput="markDirty()"></div>
+<div><label>Required Level</label><input type="number" id="requiredLevel" step="1" oninput="markDirty()"></div>
+</div>
+<div class="row">
+<div><label>Soulbound Level</label><input type="number" id="soulboundLevel" step="1" oninput="markDirty()"></div>
+<div><label>Soulbinding Chance (%)</label><input type="number" id="soulbindingChance" step="0.1" oninput="markDirty()"></div>
+</div>
+<label>Tier</label>
+<select id="tierSelect" oninput="markDirty()">
+<option value="">-- Ninguno --</option>
+<option value="COMMON">COMMON</option>
+<option value="UNCOMMON">UNCOMMON</option>
+<option value="RARE">RARE</option>
+<option value="EPIC">EPIC</option>
+<option value="LEGENDARY">LEGENDARY</option>
+<option value="MYTHIC">MYTHIC</option>
+<option value="UNIQUE">UNIQUE</option>
+<option value="SET">SET</option>
+<option value="MAGICAL">MAGICAL</option>
+</select>
+</div>
+<div class="prop-section" id="commandsSection" style="display:none">
+<div class="prop-title">Al ejecutar</div>
+<div id="commandsList"></div>
+<button class="btn btn-secondary btn-sm" onclick="addCommand()">+ Comando</button>
+</div>
+</div>
+</div>
+
+<!-- ENCHANTS TAB -->
+<div class="tab-page" id="tab-enchants">
+<div id="enchantsEmpty" class="empty-state"><div class="icon">&#10024;</div><p>Selecciona o crea un item</p></div>
+<div id="enchantsEditor" style="display:none">
+<div class="prop-section">
+<div class="prop-title">Encantamientos Vanilla</div>
+<div class="toggle-wrap">
+<button class="toggle" id="enchantsToggle" onclick="toggleEnchants()"></button>
+<span class="toggle-label">Habilitar Encantamientos</span>
+</div>
+<div id="enchantsList" style="display:none">
+<div class="enchant-grid" id="enchantGrid"></div>
+</div>
+</div>
+<div class="prop-section">
+<div class="prop-title">Efectos de Pocion</div>
+<div class="toggle-wrap">
+<button class="toggle" id="effectsToggle" onclick="toggleEffects()"></button>
+<span class="toggle-label">Habilitar Efectos</span>
+</div>
+<div id="effectsList" style="display:none">
+<div id="effectsContainer"></div>
+<button class="btn btn-sm btn-primary btn-block" onclick="addEffect()">+ Efecto</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ABILITIES TAB -->
+<div class="tab-page" id="tab-abilities">
+<div id="abilitiesEmpty" class="empty-state"><div class="icon">&#9889;</div><p>Selecciona o crea un item</p></div>
+<div id="abilitiesEditor" style="display:none">
+<div class="prop-section">
+<div class="prop-title">Habilidades</div>
+<div id="abilityList"></div>
+<button class="btn btn-sm btn-primary btn-block" onclick="addAbility()">+ Habilidad</button>
+</div>
+</div>
+</div>
+
+<!-- RESTRICTIONS TAB -->
+<div class="tab-page" id="tab-restrictions">
+<div id="restrictionsEmpty" class="empty-state"><div class="icon">&#128274;</div><p>Selecciona o crea un item</p></div>
+<div id="restrictionsEditor" style="display:none">
+<div class="prop-section">
+<div class="prop-title">Restricciones</div>
+<div class="toggle-wrap"><button class="toggle" id="togDisableCrafting" onclick="this.classList.toggle('on');markDirty()"></button><span class="toggle-label">Disable Crafting</span></div>
+<div class="toggle-wrap"><button class="toggle" id="togDisableSmelting" onclick="this.classList.toggle('on');markDirty()"></button><span class="toggle-label">Disable Smelting (Horno)</span></div>
+<div class="toggle-wrap"><button class="toggle" id="togDisableSmithing" onclick="this.classList.toggle('on');markDirty()"></button><span class="toggle-label">Disable Smithing</span></div>
+<div class="toggle-wrap"><button class="toggle" id="togDisableEnchanting" onclick="this.classList.toggle('on');markDirty()"></button><span class="toggle-label">Disable Enchanting</span></div>
+<div class="toggle-wrap"><button class="toggle" id="togDisableRepairing" onclick="this.classList.toggle('on');markDirty()"></button><span class="toggle-label">Disable Repairing</span></div>
+<div class="toggle-wrap"><button class="toggle" id="togDisableDroping" onclick="this.classList.toggle('on');markDirty()"></button><span class="toggle-label">Disable Droping</span></div>
+<div class="toggle-wrap"><button class="toggle" id="togDisableDeathDrop" onclick="this.classList.toggle('on');markDirty()"></button><span class="toggle-label">Disable Death Drop</span></div>
+<div class="toggle-wrap"><button class="toggle" id="togDisableInteraction" onclick="this.classList.toggle('on');markDirty()"></button><span class="toggle-label">Disable Interaction</span></div>
+</div>
+<div class="prop-section">
+<div class="prop-title">Propiedades</div>
+<div class="toggle-wrap"><button class="toggle" id="togUnbreakable" onclick="this.classList.toggle('on');markDirty()"></button><span class="toggle-label">Unbreakable</span></div>
+<div class="toggle-wrap"><button class="toggle" id="togUnstackable" onclick="this.classList.toggle('on');markDirty()"></button><span class="toggle-label">Unstackable</span></div>
+<div class="toggle-wrap"><button class="toggle" id="togHideEnchants" onclick="this.classList.toggle('on');markDirty()"></button><span class="toggle-label">Hide Enchants</span></div>
+<div class="toggle-wrap"><button class="toggle" id="togHideDye" onclick="this.classList.toggle('on');markDirty()"></button><span class="toggle-label">Hide Dye</span></div>
+<div class="toggle-wrap"><button class="toggle" id="togHidePotionEffects" onclick="this.classList.toggle('on');markDirty()"></button><span class="toggle-label">Hide Potion Effects</span></div>
+<div class="toggle-wrap"><button class="toggle" id="togVanillaEating" onclick="this.classList.toggle('on');markDirty()"></button><span class="toggle-label">Vanilla Eating</span></div>
+<div class="toggle-wrap"><button class="toggle" id="togDisableRightClickConsume" onclick="this.classList.toggle('on');markDirty()"></button><span class="toggle-label">Disable Right-Click Consume</span></div>
+</div>
+</div>
+</div>
+
+<!-- CUSTOM MODEL DATA TAB -->
+<div class="tab-page" id="tab-modeldata">
+<div id="modeldataEmpty" class="empty-state"><div class="icon">&#128736;</div><p>Selecciona o crea un item</p></div>
+<div id="modeldataEditor" style="display:none">
+<div class="prop-section">
+<div class="prop-title">Custom Model Data</div>
+<div class="toggle-wrap">
+<button class="toggle" id="cmdToggle" onclick="toggleCMD()"></button>
+<span class="toggle-label">Habilitar Custom Model Data</span>
+</div>
+<div id="cmdWrap" style="display:none">
+<label>Custom Model Data (numero)</label>
+<input type="number" id="customModelData" step="1" oninput="markDirty()" placeholder="e.j. 2115">
+</div>
+</div>
+<div class="prop-section">
+<div class="prop-title">Equipable</div>
+<label>Equipable Slot</label>
+<select id="equipSlot" onchange="markDirty()">
+<option value="">-- Ninguno --</option>
+<option value="head">Head</option>
+<option value="chest">Chest</option>
+<option value="legs">Legs</option>
+<option value="feet">Feet</option>
+<option value="main-hand">Main Hand</option>
+<option value="off-hand">Off Hand</option>
+</select>
+<div id="equipModelWrap" style="display:none">
+<label>Equipable Model (ID del item en Nexo)</label>
+<input type="text" id="equipModel" oninput="markDirty()" placeholder="e.j. nexo:pirate_reasure_set">
+</div>
+</div>
+<div class="prop-section">
+<div class="prop-title">Dye Color</div>
+<div class="row">
+<div><label>R</label><input type="number" id="dyeR" min="0" max="255" oninput="markDirty()"></div>
+<div><label>G</label><input type="number" id="dyeG" min="0" max="255" oninput="markDirty()"></div>
+<div><label>B</label><input type="number" id="dyeB" min="0" max="255" oninput="markDirty()"></div>
+</div>
+<div style="margin-top:6px">
+<label>Color (RGB separado por espacios)</label>
+<input type="text" id="dyeColorText" oninput="parseDyeColor();markDirty()" placeholder="76 153 0">
+</div>
+</div>
+<div class="prop-section">
+<div class="prop-title">Armor Color (Leather)</div>
+<div class="row">
+<div><label>R</label><input type="number" id="colorR" min="0" max="255" oninput="markDirty()"></div>
+<div><label>G</label><input type="number" id="colorG" min="0" max="255" oninput="markDirty()"></div>
+<div><label>B</label><input type="number" id="colorB" min="0" max="255" oninput="markDirty()"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- YAML PANEL -->
+<div class="yaml-section-hdr" id="yamlSectionHdr" style="display:none">
+<span style="font-size:.8rem;color:#8b949e">YAML Output</span>
+<button class="btn btn-sm btn-secondary" onclick="copyYaml()">Copiar</button>
+</div>
+<div class="yaml-section-body" id="yamlSectionBody">
+<div class="yaml-preview" id="yamlLive" style="border:none;max-height:none;height:100%;border-radius:0"></div>
+</div>
+</div>
+
+<!-- MATERIAL PICKER MODAL -->
+<div class="mat-modal-overlay" id="matModal">
+<div class="mat-modal">
+<div class="mat-modal-hdr"><span>&#9638; Seleccionar Material</span><button onclick="closeMaterialPicker()">&#10005;</button></div>
+<div class="mat-modal-search"><input type="text" id="matModalSearch" placeholder="Buscar item..." oninput="filterModalItems()" onkeydown="if(event.key==='Enter'){var first=document.querySelector('.mat-grid-item');if(first)first.click();}"></div>
+<div class="mat-modal-body"><div class="mat-grid" id="matModalGrid"></div></div>
+<div class="mat-modal-footer" id="matModalFooter">Haz clic en un item para seleccionarlo</div>
+</div>
+</div>
+
+<!-- FORMAT PICKER MODAL -->
+<div class="fmt-modal-overlay" id="fmtModal" onclick="if(event.target===this)closeFmtModal()">
+<div class="fmt-modal">
+<div class="fmt-modal-hdr"><span>&#9998; Colores y Formato</span><button onclick="closeFmtModal()">&#10005;</button></div>
+<div class="fmt-modal-target" id="fmtModalTarget"></div>
+<div class="fmt-modal-body" id="fmtModalBody"></div>
+</div>
+</div>
+
+<!-- EMOJI MODAL -->
+<div class="emoji-modal-overlay" id="emojiModal" onclick="if(event.target===this)closeEmojiModal()">
+<div class="emoji-modal">
+<div class="emoji-modal-hdr"><span>&#9786; Simbolos Unicode</span><button onclick="closeEmojiModal()">&#10005;</button></div>
+<div class="emoji-modal-search"><input type="text" id="emojiSearch" placeholder="Buscar simbolo..." oninput="filterEmojis()"></div>
+<div class="emoji-modal-body">
+<div class="emoji-category">Simbolos e Iconos</div>
+<div class="emoji-grid" id="emojiGrid"></div>
+</div>
+<div class="emoji-modal-footer">Click en un simbolo para insertarlo</div>
+</div>
+</div>
+
+<script>
+// ===== DATA =====
+let items = {};
+let activeItemId = null;
+let dirty = false;
+let yamlVisible = false;
+
+// Vanilla enchantments
+const VANILLA_ENCHANTS = [
+  'protection','fire_protection','feather_falling','blast_protection','projectile_protection',
+  'respiration','aqua_affinity','thorns','depth_strider','frost_walker',
+  'sharpness','smite','bane_of_arthropods','knockback','fire_aspect',
+  'looting','sweeping_edge','efficiency','silk_touch','unbreaking',
+  'fortune','power','punch','flame','infinity',
+  'luck_of_the_sea','lure','loyalty','impaling','riptide',
+  'channeling','multishot','quick_charge','piercing','mending',
+  'vanishing_curse','binding_curse','soul_speed','swift_sneak','density',
+  'breach','wind_burst'
+];
+
+// Potion effects
+const POTION_EFFECTS = [
+  'speed','slow','fast-digging','slow-digging','increase-damage','heal',
+  'harm','jump','confusion','regeneration','damage-resistance','fire-resistance',
+  'water-breathing','invisibility','blindness','night-vision','hunger',
+  'weakness','poison','wither','health-boost','absorption','saturation',
+  'glowing','levitation','luck','unluck','conduit-power','dolphins-grace',
+  'bad-omen','hero-of-the-village','darkness','trial-omen','raid-omen',
+  'wind-charged','weaving','oozing','infested'
+];
+
+// Ability types
+const ABILITY_TYPES = [
+  'FIREBOLT','FIREBALL','ITEM_THROW','ITEM_BOMB','BLINK','VAMPIRISM','SMITE',
+  'THROW_UP','LIFE_DRAIN','CURE','FIREBREATH','FROSTBREAT','EARTHQUAKE',
+  'LIGHTNING','TORNADO','ABYSS','DEATH_SIPHON','SACRIFICE','MOONWALK',
+  'SHIELD','SPRINT','BLOODLUST','BERSERK','FROZEN_LIGHT','DEFENSE',
+  'DEFUSE','DISARM','WEAPON_BREAK','ARMOR_BREAK','ARTIFACT','RECALL',
+  'SHADOW_FANG','CHAIN_LIGHTNING','METEOR','FLAME_WAVE','FROST_NOVA',
+  'POISON_CLOUD','EARTH_SPIKE','WIND_SLASH','HOLY_RAY','DARK_PULSE',
+  'SUMMON','CUSTOM'
+];
+
+// Ability modes
+const ABILITY_MODES = [
+  'RIGHT_CLICK','SNEAK','ATTACK','SHOOT','LAUNCH_PROJECTILE','DAMAGE',
+  'STAND_ON_BLOCK','KILL','DEATH','INTERACT','CLICK','SHIFT_RIGHT_CLICK',
+  'SHIFT_LEFT_CLICK','SWAP_HANDS'
+];
+
+// MC Items for material picker
+const MC_ITEMS = [
+'DIAMOND','DIAMOND_BLOCK','EMERALD','EMERALD_BLOCK','GOLD_INGOT','GOLD_BLOCK','IRON_INGOT','IRON_BLOCK',
+'NETHERITE_INGOT','NETHERITE_BLOCK','LAPIS_LAZULI','LAPIS_BLOCK','REDSTONE','REDSTONE_BLOCK','COAL','COAL_BLOCK',
+'STONE','COBBLESTONE','GRANITE','DIORITE','ANDESITE','DEEPSLATE','OBSIDIAN','BEDROCK','TNT','SPONGE',
+'GRASS_BLOCK','DIRT','SAND','GRAVEL','CLAY','MUD','ICE','PACKED_ICE','BLUE_ICE',
+'OAK_LOG','BIRCH_LOG','SPRUCE_LOG','DARK_OAK_LOG','ACACIA_LOG','JUNGLE_LOG','CHERRY_LOG','MANGROVE_LOG',
+'OAK_PLANKS','BIRCH_PLANKS','SPRUCE_PLANKS','DARK_OAK_PLANKS','ACACIA_PLANKS','JUNGLE_PLANKS',
+'DIAMOND_SWORD','DIAMOND_PICKAXE','DIAMOND_AXE','DIAMOND_SHOVEL','DIAMOND_HOE',
+'NETHERITE_SWORD','NETHERITE_PICKAXE','BOW','CROSSBOW','TRIDENT','SHIELD','MACE',
+'LEATHER_HELMET','LEATHER_CHESTPLATE','LEATHER_LEGGINGS','LEATHER_BOOTS',
+'CHAINMAIL_HELMET','CHAINMAIL_CHESTPLATE','CHAINMAIL_LEGGINGS','CHAINMAIL_BOOTS',
+'IRON_HELMET','IRON_CHESTPLATE','IRON_LEGGINGS','IRON_BOOTS',
+'DIAMOND_HELMET','DIAMOND_CHESTPLATE','DIAMOND_LEGGINGS','DIAMOND_BOOTS',
+'NETHERITE_HELMET','NETHERITE_CHESTPLATE','NETHERITE_LEGGINGS','NETHERITE_BOOTS',
+'GOLDEN_HELMET','GOLDEN_CHESTPLATE','GOLDEN_LEGGINGS','GOLDEN_BOOTS',
+'GOLDEN_APPLE','ENCHANTED_GOLDEN_APPLE','TOTEM_OF_UNDYING','ELYTRA','FIREWORK_ROCKET',
+'ENDER_PEARL','ENDER_EYE','EXPERIENCE_BOTTLE','ENCHANTED_BOOK','NAME_TAG','SADDLE',
+'BOOK','PAPER','COMPASS','CLOCK','MAP','LEAD','SHEARS','FISHING_ROD',
+'APPLE','BREAD','CAKE','COOKIE','GOLDEN_CARROT','STEAK','COOKED_BEEF',
+'POTION','SPLASH_POTION','LINGERING_POTION',
+'BARRIER','COMMAND_BLOCK','STRUCTURE_VOID','JIGSAW','LIGHT','RESPAWN_ANCHOR',
+'PLAYER_HEAD','SKELETON_SKULL','WITHER_SKELETON_SKULL','DRAGON_HEAD','CREEPER_HEAD',
+'HEART_OF_THE_SEA','NAUTILUS_SHELL','NETHER_STAR','END_CRYSTAL','CONDUIT','BEACON',
+'GOLD_NUGGET','IRON_NUGGET','RAW_GOLD','RAW_IRON','RAW_COPPER',
+'ARROW','SPECTRAL_ARROW','TIPPED_ARROW','SNOWBALL','EGG',
+'WHITE_WOOL','GRAY_WOOL','BLACK_WOOL','RED_WOOL','BLUE_WOOL','GREEN_WOOL',
+'YELLOW_WOOL','LIME_WOOL','CYAN_WOOL','PURPLE_WOOL','ORANGE_WOOL','PINK_WOOL',
+'TRIPWIRE_HOOK','FLINT','MUSHROOM_STEW','RABBIT_STEW','CARROT','COOKED_BEEF',
+'COOKED_PORKCHOP','COOKED_CHICKEN','COOKED_MUTTON','COOKED_RABBIT','COOKED_COD','COOKED_SALMON',
+'MACE','WOLF_ARMOR','TURTLE_HELMET','FROGSPAWN','DRAGON_EGG','ELYTRA'
+];
+
+const ITEM_COLORS = {
+'DIAMOND':'#5cf5f5','EMERALD':'#17dd62','GOLD_INGOT':'#ffd700','IRON_INGOT':'#d4d4d4',
+'NETHERITE_INGOT':'#4a4a4a','REDSTONE':'#ff0000','LAPIS_LAZULI':'#345ec3','COAL':'#333',
+'STONE':'#888','GRASS_BLOCK':'#5d8c3e','DIRT':'#8b6b4a','SAND':'#e8dca0',
+'OBSIDIAN':'#1a0a2e','TNT':'#ff4444','BARRIER':'#ff0066','BEDROCK':'#555',
+'DIAMOND_BLOCK':'#5cf5f5','EMERALD_BLOCK':'#17dd62','GOLD_BLOCK':'#ffd700',
+'IRON_BLOCK':'#d4d4d4','NETHERITE_BLOCK':'#4a4a4a','SPONGE':'#e8d44d',
+'DIAMOND_SWORD':'#5cf5f5','BOW':'#8b6b4a','TRIDENT':'#17b8c9','SHIELD':'#888',
+'APPLE':'#ff3333','CAKE':'#f5e0c9','GOLDEN_APPLE':'#ffd700','ENDER_PEARL':'#009999',
+'POTION':'#ff66cc','ENCHANTED_BOOK':'#aa44ff','BOOK':'#8b6b4a',
+'BELL':'#ffd700','LANTERN':'#ffaa00','CAMPFIRE':'#ff6600','BEACON':'#5cf5f5',
+'PLAYER_HEAD':'#ffcc99','END_CRYSTAL':'#ff66ff','CONDUIT':'#5cf5f5',
+'HEART_OF_THE_SEA':'#0055aa','NAUTILUS_SHELL':'#d4a574',
+'NETHER_STAR':'#ffffff','TRIPWIRE_HOOK':'#8b6b4a','FLINT':'#555',
+'MACE':'#c9a0ff','ELYTRA':'#8b6b4a'
+};
+
+// MC Colors for format modal
+const MC_COLORS = [
+  {code:'0',hex:'#000000'},{code:'1',hex:'#0000AA'},{code:'2',hex:'#00AA00'},{code:'3',hex:'#00AAAA'},
+  {code:'4',hex:'#AA0000'},{code:'5',hex:'#AA00AA'},{code:'6',hex:'#FFAA00'},{code:'7',hex:'#AAAAAA'},
+  {code:'8',hex:'#555555'},{code:'9',hex:'#5555FF'},{code:'a',hex:'#55FF55'},{code:'b',hex:'#55FFFF'},
+  {code:'c',hex:'#FF5555'},{code:'d',hex:'#FF55FF'},{code:'e',hex:'#FFFF55'},{code:'f',hex:'#FFFFFF'}
+];
+const MC_FORMATS = [
+  {code:'k',label:'K',title:'Obfuscated'},{code:'l',label:'N',title:'Negrita (Bold)'},
+  {code:'m',label:'S',title:'Tachado (Strikethrough)'},{code:'n',label:'S',title:'Subrayado (Underline)'},
+  {code:'o',label:'I',title:'Cursiva (Italic)'}
+];
+const MC_UNICODE = [
+  '➥','➡','⬅','⬆','⬇','↗','↘','↙','↖','↔','↕','▶','◀','▲','▼',
+  '★','☆','♥','♦','♣','♠','♪','♫','☀','☁','☂','☃','♩','♬','✎','✉','✦','✧','❄','❅','❆','⚔','⚡','❤','✖','✔','❌','✗','✓',
+  '●','○','■','□','▪','▫','▬','▭','◆','◇','◈','◉','◊','◐','◑','◒','◓',
+  '∞','±','×','÷','√','∑','∏','∫','∂','∇','∆','∅','∈','∉','∋','∌','∧','∨','¬','⊕','⊗',
+  '€','$','¢','£','¥','₿','ƒ','₩','₪','₫','₭','₮','₯','₰','₱','₲','₳','₴','₹','₺','₻','₼','₽',
+  '§','¶','†','‡','°','•','‣','⁂','⁑','⁕','✱','✲','✳','✴','✵','✶','✷','✸','✹','✺','✻','✼','✽','✾','✿','❀','❁','❂','❃','❇','❈','❉','❊','❋'
+];
+
+// ===== TAB SWITCHING =====
+function switchTab(tabId){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+  document.getElementById('tab-'+tabId).classList.add('active');
+}
+
+// ===== ITEMS =====
+function addNewItem(){
+  const id = 'NEW_ITEM_' + Date.now().toString(36).toUpperCase();
+  items[id] = createDefaultItem();
+  activeItemId = id;
+  renderItemList();
+  loadEditor();
+  markDirty();
+}
+
+function createDefaultItem(){
+  return {
+    material:'DIAMOND_SWORD',revisionId:1,name:'',lore:'',
+    tooltipStyle:'',skullTexture:'',skullUuid:'',
+    customModelData:null,customModelDataEnabled:false,
+    equipSlot:'',equipModel:'',
+    dyeColor:'',armorColor:'',
+    attackDmgSimple:'',atkDmgRange:false,atkDmgMin:'',atkDmgMax:'',
+    armor:'',defense:'',maxHealth:'',pvpDmg:'',pveDmg:'',critChance:'',critPower:'',blockPower:'',dodgeChance:'',
+    miningEff:'',submergedMining:'',
+    maxDurability:'',durability:'',durabilityBar:false,willBreak:false,
+    restoreHealth:'',restoreFood:'',restoreSaturation:'',restoreMana:'',restoreStamina:'',
+    itemCooldown:'',repair:'',requiredLevel:'',
+    soulboundLevel:'',soulbindingChance:'',tier:'',
+    enchantsEnabled:false,enchants:{},
+    effectsEnabled:false,effects:[],
+    abilities:[],
+    disableCrafting:false,disableSmelting:false,disableSmithing:false,
+    disableEnchanting:false,disableRepairing:false,disableDroping:false,
+    disableDeathDrop:false,disableInteraction:false,
+    unbreakable:false,unstackable:false,hideEnchants:false,hideDye:false,
+    hidePotionEffects:false,vanillaEating:false,disableRightClickConsume:false,
+    consumible:false,commands:[]
+  };
+}
+
+function selectItem(id){
+  activeItemId = id;
+  renderItemList();
+  loadEditor();
+}
+
+function deleteItem(id){
+  if(!confirm('Eliminar item "'+id+'"?')) return;
+  delete items[id];
+  if(activeItemId===id) activeItemId = Object.keys(items)[0]||null;
+  renderItemList();
+  loadEditor();
+  markDirty();
+}
+
+function renderItemList(){
+  const list = document.getElementById('itemList');
+  const ids = Object.keys(items).sort();
+  if(ids.length===0){
+    list.innerHTML='<div class="empty-state"><div class="icon">&#9874;</div><p>Crea items con + Item</p></div>';
+    return;
+  }
+  let html='';
+  ids.forEach(id=>{
+    const it=items[id];
+    const act=id===activeItemId?'active':'';
+    const color=ITEM_COLORS[it.material.toUpperCase()]||'#888';
+    html+=`<div class="cat-item ${act}" onclick="selectItem('${id.replace(/'/g,"\\'")}')">
+      <div style="width:10px;height:10px;border-radius:2px;background:${color};flex-shrink:0"></div>
+      <div style="flex:1;min-width:0"><div style="font-size:.8rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${id}</div>
+      <div style="font-size:.7rem;color:#8b949e">${it.material}</div></div>
+      <button class="btn btn-sm btn-danger" style="padding:2px 6px;font-size:.65rem" onclick="event.stopPropagation();deleteItem('${id.replace(/'/g,"\\'")}')">&#10005;</button>
+    </div>`;
+  });
+  list.innerHTML=html;
+}
+
+// ===== CATEGORY =====
+function onCategoryChange(){
+  const sel = document.getElementById('categorySelect');
+  const wrap = document.getElementById('customCatWrap');
+  wrap.style.display = sel.value==='__custom__' ? 'block' : 'none';
+}
+
+// ===== EDITOR =====
+function loadEditor(){
+  const hasItem = activeItemId && items[activeItemId];
+  // Show/hide editors
+  ['general','display','stats','enchants','abilities','restrictions','modeldata'].forEach(t=>{
+    const empty = document.getElementById(t+'Empty');
+    const editor = document.getElementById(t+'Editor');
+    if(empty) empty.style.display = hasItem ? 'none' : 'block';
+    if(editor) editor.style.display = hasItem ? 'block' : 'none';
+  });
+  if(!hasItem) return;
+  const it = items[activeItemId];
+  // General
+  document.getElementById('itemId').value = activeItemId;
+  document.getElementById('revisionId').value = it.revisionId;
+  document.getElementById('itemMaterial').value = it.material;
+  document.getElementById('tooltipStyle').value = it.tooltipStyle||'';
+  document.getElementById('skullTexture').value = it.skullTexture||'';
+  document.getElementById('skullUuid').value = it.skullUuid||'';
+  toggleHeadTexture();
+  // Display
+  document.getElementById('itemName').value = it.name||'';
+  document.getElementById('itemLore').value = it.lore||'';
+  // Stats
+  document.getElementById('attackDmgSimple').value = it.attackDmgSimple||'';
+  setToggle('atkDmgRangeToggle', it.atkDmgRange);
+  document.getElementById('atkDmgRangeWrap').style.display = it.atkDmgRange ? 'block' : 'none';
+  document.getElementById('atkDmgMin').value = it.atkDmgMin||'';
+  document.getElementById('atkDmgMax').value = it.atkDmgMax||'';
+  document.getElementById('armor').value = it.armor||'';
+  document.getElementById('pvpDmg').value = it.pvpDmg||'';
+  document.getElementById('pveDmg').value = it.pveDmg||'';
+  document.getElementById('defense').value = it.defense||'';
+  document.getElementById('maxHealth').value = it.maxHealth||'';
+  document.getElementById('critChance').value = it.critChance||'';
+  document.getElementById('critPower').value = it.critPower||'';
+  document.getElementById('blockPower').value = it.blockPower||'';
+  document.getElementById('dodgeChance').value = it.dodgeChance||'';
+  document.getElementById('miningEff').value = it.miningEff||'';
+  document.getElementById('submergedMining').value = it.submergedMining||'';
+  document.getElementById('maxDurability').value = it.maxDurability||'';
+  document.getElementById('durability').value = it.durability||'';
+  setToggle('durabilityBarToggle', it.durabilityBar);
+  setToggle('willBreakToggle', it.willBreak);
+  document.getElementById('restoreHealth').value = it.restoreHealth||'';
+  document.getElementById('restoreFood').value = it.restoreFood||'';
+  document.getElementById('restoreSaturation').value = it.restoreSaturation||'';
+  document.getElementById('restoreMana').value = it.restoreMana||'';
+  document.getElementById('restoreStamina').value = it.restoreStamina||'';
+  document.getElementById('itemCooldown').value = it.itemCooldown||'';
+  document.getElementById('repair').value = it.repair||'';
+  document.getElementById('requiredLevel').value = it.requiredLevel||'';
+  document.getElementById('soulboundLevel').value = it.soulboundLevel||'';
+  document.getElementById('soulbindingChance').value = it.soulbindingChance||'';
+  document.getElementById('tierSelect').value = it.tier||'';
+  // Enchants
+  setToggle('enchantsToggle', it.enchantsEnabled);
+  document.getElementById('enchantsList').style.display = it.enchantsEnabled ? 'block' : 'none';
+  buildEnchantGrid();
+  setToggle('effectsToggle', it.effectsEnabled);
+  document.getElementById('effectsList').style.display = it.effectsEnabled ? 'block' : 'none';
+  renderEffects();
+  // Abilities
+  renderAbilities();
+  // Restrictions
+  setToggle('togDisableCrafting', it.disableCrafting);
+  setToggle('togDisableSmelting', it.disableSmelting);
+  setToggle('togDisableSmithing', it.disableSmithing);
+  setToggle('togDisableEnchanting', it.disableEnchanting);
+  setToggle('togDisableRepairing', it.disableRepairing);
+  setToggle('togDisableDroping', it.disableDroping);
+  setToggle('togDisableDeathDrop', it.disableDeathDrop);
+  setToggle('togDisableInteraction', it.disableInteraction);
+  setToggle('togUnbreakable', it.unbreakable);
+  setToggle('togUnstackable', it.unstackable);
+  setToggle('togHideEnchants', it.hideEnchants);
+  setToggle('togHideDye', it.hideDye);
+  setToggle('togHidePotionEffects', it.hidePotionEffects);
+  setToggle('togVanillaEating', it.vanillaEating);
+  setToggle('togDisableRightClickConsume', it.disableRightClickConsume);
+  // Custom Model Data
+  setToggle('cmdToggle', it.customModelDataEnabled);
+  document.getElementById('cmdWrap').style.display = it.customModelDataEnabled ? 'block' : 'none';
+  document.getElementById('customModelData').value = it.customModelData||'';
+  document.getElementById('equipSlot').value = it.equipSlot||'';
+  document.getElementById('equipModel').value = it.equipModel||'';
+  toggleEquipModel();
+  // Dye color
+  document.getElementById('dyeColorText').value = it.dyeColor||'';
+  parseDyeColorToFields(it.dyeColor);
+  // Armor color
+  parseArmorColorToFields(it.armorColor);
+  // Consumible
+  setToggle('consumibleToggle', it.consumible);
+  document.getElementById('commandsSection').style.display = it.consumible ? 'block' : 'none';
+  renderCommands();
+  // Preview
+  updatePreview();
+}
+
+function setToggle(id, val){
+  const el = document.getElementById(id);
+  if(el){ if(val) el.classList.add('on'); else el.classList.remove('on'); }
+}
+function getToggle(id){ return document.getElementById(id).classList.contains('on'); }
+
+function saveFromEditor(){
+  if(!activeItemId || !items[activeItemId]) return;
+  const it = items[activeItemId];
+  // General
+  const newId = document.getElementById('itemId').value.trim();
+  if(newId && newId !== activeItemId){
+    items[newId] = items[activeItemId];
+    delete items[activeItemId];
+    activeItemId = newId;
+    renderItemList();
+  }
+  it.revisionId = parseInt(document.getElementById('revisionId').value)||1;
+  it.material = document.getElementById('itemMaterial').value||'DIAMOND_SWORD';
+  it.tooltipStyle = document.getElementById('tooltipStyle').value;
+  it.skullTexture = document.getElementById('skullTexture').value;
+  it.skullUuid = document.getElementById('skullUuid').value;
+  // Display
+  it.name = document.getElementById('itemName').value;
+  it.lore = document.getElementById('itemLore').value;
+  // Stats
+  it.attackDmgSimple = document.getElementById('attackDmgSimple').value;
+  it.atkDmgRange = getToggle('atkDmgRangeToggle');
+  it.atkDmgMin = document.getElementById('atkDmgMin').value;
+  it.atkDmgMax = document.getElementById('atkDmgMax').value;
+  it.armor = document.getElementById('armor').value;
+  it.pvpDmg = document.getElementById('pvpDmg').value;
+  it.pveDmg = document.getElementById('pveDmg').value;
+  it.defense = document.getElementById('defense').value;
+  it.maxHealth = document.getElementById('maxHealth').value;
+  it.critChance = document.getElementById('critChance').value;
+  it.critPower = document.getElementById('critPower').value;
+  it.blockPower = document.getElementById('blockPower').value;
+  it.dodgeChance = document.getElementById('dodgeChance').value;
+  it.miningEff = document.getElementById('miningEff').value;
+  it.submergedMining = document.getElementById('submergedMining').value;
+  it.maxDurability = document.getElementById('maxDurability').value;
+  it.durability = document.getElementById('durability').value;
+  it.durabilityBar = getToggle('durabilityBarToggle');
+  it.willBreak = getToggle('willBreakToggle');
+  it.restoreHealth = document.getElementById('restoreHealth').value;
+  it.restoreFood = document.getElementById('restoreFood').value;
+  it.restoreSaturation = document.getElementById('restoreSaturation').value;
+  it.restoreMana = document.getElementById('restoreMana').value;
+  it.restoreStamina = document.getElementById('restoreStamina').value;
+  it.itemCooldown = document.getElementById('itemCooldown').value;
+  it.repair = document.getElementById('repair').value;
+  it.requiredLevel = document.getElementById('requiredLevel').value;
+  it.soulboundLevel = document.getElementById('soulboundLevel').value;
+  it.soulbindingChance = document.getElementById('soulbindingChance').value;
+  it.tier = document.getElementById('tierSelect').value;
+  // Enchants
+  it.enchantsEnabled = getToggle('enchantsToggle');
+  saveEnchants();
+  it.effectsEnabled = getToggle('effectsToggle');
+  saveEffects();
+  // Abilities
+  saveAbilities();
+  // Restrictions
+  it.disableCrafting = getToggle('togDisableCrafting');
+  it.disableSmelting = getToggle('togDisableSmelting');
+  it.disableSmithing = getToggle('togDisableSmithing');
+  it.disableEnchanting = getToggle('togDisableEnchanting');
+  it.disableRepairing = getToggle('togDisableRepairing');
+  it.disableDroping = getToggle('togDisableDroping');
+  it.disableDeathDrop = getToggle('togDisableDeathDrop');
+  it.disableInteraction = getToggle('togDisableInteraction');
+  it.unbreakable = getToggle('togUnbreakable');
+  it.unstackable = getToggle('togUnstackable');
+  it.hideEnchants = getToggle('togHideEnchants');
+  it.hideDye = getToggle('togHideDye');
+  it.hidePotionEffects = getToggle('togHidePotionEffects');
+  it.vanillaEating = getToggle('togVanillaEating');
+  it.disableRightClickConsume = getToggle('togDisableRightClickConsume');
+  // Custom Model Data
+  it.customModelDataEnabled = getToggle('cmdToggle');
+  it.customModelData = document.getElementById('customModelData').value;
+  it.equipSlot = document.getElementById('equipSlot').value;
+  it.equipModel = document.getElementById('equipModel').value;
+  // Dye color
+  it.dyeColor = document.getElementById('dyeColorText').value;
+  // Armor color
+  const cr=document.getElementById('colorR').value,cg=document.getElementById('colorG').value,cb=document.getElementById('colorB').value;
+  it.armorColor = (cr&&cg&&cb) ? `${cr} ${cg} ${cb}` : '';
+  // Consumible
+  it.consumible = getToggle('consumibleToggle');
+  saveCommands();
+  renderItemList();
+}
+
+function markDirty(){ dirty=true; saveFromEditor(); updateYaml(); }
+
+// ===== TOGGLES =====
+function toggleAtkDmgRange(){
+  const el = document.getElementById('atkDmgRangeToggle');
+  el.classList.toggle('on');
+  document.getElementById('atkDmgRangeWrap').style.display = el.classList.contains('on') ? 'block' : 'none';
+  markDirty();
+}
+function toggleEnchants(){
+  const el = document.getElementById('enchantsToggle');
+  el.classList.toggle('on');
+  document.getElementById('enchantsList').style.display = el.classList.contains('on') ? 'block' : 'none';
+  markDirty();
+}
+function toggleEffects(){
+  const el = document.getElementById('effectsToggle');
+  el.classList.toggle('on');
+  document.getElementById('effectsList').style.display = el.classList.contains('on') ? 'block' : 'none';
+  markDirty();
+}
+function toggleCMD(){
+  const el = document.getElementById('cmdToggle');
+  el.classList.toggle('on');
+  document.getElementById('cmdWrap').style.display = el.classList.contains('on') ? 'block' : 'none';
+  toggleEquipModel();
+  markDirty();
+}
+function toggleEquipModel(){
+  const cmdOn = getToggle('cmdToggle');
+  const slot = document.getElementById('equipSlot').value;
+  document.getElementById('equipModelWrap').style.display = (cmdOn && slot) ? 'block' : 'none';
+}
+function toggleHeadTexture(){
+  const mat = document.getElementById('itemMaterial').value.toUpperCase().trim();
+  const wrap = document.getElementById('headTextureWrap');
+  if(wrap) wrap.style.display = mat === 'PLAYER_HEAD' ? 'block' : 'none';
+}
+function toggleConsumible(){
+  const el = document.getElementById('consumibleToggle');
+  el.classList.toggle('on');
+  document.getElementById('commandsSection').style.display = el.classList.contains('on') ? 'block' : 'none';
+  markDirty();
+}
+
+// ===== COMMANDS =====
+function renderCommands(){
+  if(!activeItemId || !items[activeItemId]) return;
+  const it = items[activeItemId];
+  const list = document.getElementById('commandsList');
+  if(!it.commands) it.commands = [];
+  list.innerHTML = '';
+  it.commands.forEach((cmd, i) => {
+    const div = document.createElement('div');
+    div.className = 'ability-card';
+    div.innerHTML = `
+      <div class="ability-header">
+        <span>Comando #${i+1}</span>
+        <button class="btn btn-danger btn-sm" onclick="removeCommand(${i})">Eliminar</button>
+      </div>
+      <label>Comando (format)</label>
+      <input type="text" value="${(cmd.format||'').replace(/"/g,'&quot;')}" oninput="items[activeItemId].commands[${i}].format=this.value;markDirty()" placeholder="e.j. spawn">
+      <div class="row">
+        <div><label>Delay (seg)</label><input type="number" value="${cmd.delay||''}" step="0.1" min="0" oninput="items[activeItemId].commands[${i}].delay=this.value;markDirty()"></div>
+        <div><label>&nbsp;</label>
+          <div class="toggle-wrap">
+            <button class="toggle ${cmd.console?'on':''}" onclick="this.classList.toggle('on');items[activeItemId].commands[${i}].console=this.classList.contains('on');markDirty()"></button>
+            <span class="toggle-label">Consola</span>
+          </div>
+        </div>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+function addCommand(){
+  if(!activeItemId || !items[activeItemId]) return;
+  if(!items[activeItemId].commands) items[activeItemId].commands = [];
+  items[activeItemId].commands.push({format:'',delay:'',console:false});
+  renderCommands();
+  markDirty();
+}
+function removeCommand(idx){
+  if(!activeItemId || !items[activeItemId]) return;
+  items[activeItemId].commands.splice(idx, 1);
+  renderCommands();
+  markDirty();
+}
+function saveCommands(){
+  // Commands are saved directly via oninput handlers in renderCommands
+}
+
+// ===== ENCHANT GRID =====
+function buildEnchantGrid(){
+  const grid = document.getElementById('enchantGrid');
+  const it = items[activeItemId];
+  let html='';
+  VANILLA_ENCHANTS.forEach(e=>{
+    const val = (it.enchants && it.enchants[e]) || '';
+    html+=`<div class="enchant-row"><label title="${e}">${e.replace(/_/g,' ')}</label><input type="number" min="0" max="255" value="${val}" data-enchant="${e}" onchange="markDirty()" placeholder="0"></div>`;
+  });
+  grid.innerHTML=html;
+}
+function saveEnchants(){
+  if(!activeItemId||!items[activeItemId]) return;
+  const it=items[activeItemId];
+  it.enchants={};
+  document.querySelectorAll('#enchantGrid input[data-enchant]').forEach(inp=>{
+    const v=parseFloat(inp.value);
+    if(v>0) it.enchants[inp.getAttribute('data-enchant')]=v;
+  });
+}
+
+// ===== EFFECTS =====
+function addEffect(){
+  if(!activeItemId||!items[activeItemId]) return;
+  items[activeItemId].effects.push({type:POTION_EFFECTS[0],duration:30,amplifier:1});
+  renderEffects();
+  markDirty();
+}
+function removeEffect(idx){
+  if(!activeItemId||!items[activeItemId]) return;
+  items[activeItemId].effects.splice(idx,1);
+  renderEffects();
+  markDirty();
+}
+function renderEffects(){
+  const c=document.getElementById('effectsContainer');
+  const it=items[activeItemId];
+  if(!it||!it.effects){c.innerHTML='';return;}
+  let html='';
+  it.effects.forEach((ef,i)=>{
+    html+=`<div class="row" style="margin-bottom:6px;align-items:end">
+      <div><label>Efecto</label><select data-ef-type="${i}" onchange="markDirty()">`;
+    POTION_EFFECTS.forEach(p=>{html+=`<option value="${p}"${p===ef.type?' selected':''}>${p}</option>`;});
+    html+=`</select></div>
+      <div><label>Duration</label><input type="number" data-ef-dur="${i}" value="${ef.duration}" onchange="markDirty()"></div>
+      <div><label>Amplifier</label><input type="number" data-ef-amp="${i}" value="${ef.amplifier}" onchange="markDirty()"></div>
+      <div><button class="btn btn-sm btn-danger" onclick="removeEffect(${i})">&#10005;</button></div>
+    </div>`;
+  });
+  c.innerHTML=html;
+}
+function saveEffects(){
+  if(!activeItemId||!items[activeItemId]) return;
+  const it=items[activeItemId];
+  document.querySelectorAll('#effectsContainer select[data-ef-type]').forEach(sel=>{
+    const i=parseInt(sel.getAttribute('data-ef-type'));
+    it.effects[i].type=sel.value;
+  });
+  document.querySelectorAll('#effectsContainer input[data-ef-dur]').forEach(inp=>{
+    const i=parseInt(inp.getAttribute('data-ef-dur'));
+    it.effects[i].duration=parseFloat(inp.value)||0;
+  });
+  document.querySelectorAll('#effectsContainer input[data-ef-amp]').forEach(inp=>{
+    const i=parseInt(inp.getAttribute('data-ef-amp'));
+    it.effects[i].amplifier=parseFloat(inp.value)||0;
+  });
+}
+
+// ===== ABILITIES =====
+function addAbility(){
+  if(!activeItemId||!items[activeItemId]) return;
+  items[activeItemId].abilities.push({id:'ability'+(items[activeItemId].abilities.length+1),type:'FIREBOLT',mode:'RIGHT_CLICK',damage:'',cooldown:'',duration:'',drain:'',range:'',ignite:''});
+  renderAbilities();
+  markDirty();
+}
+function removeAbility(idx){
+  if(!activeItemId||!items[activeItemId]) return;
+  items[activeItemId].abilities.splice(idx,1);
+  renderAbilities();
+  markDirty();
+}
+function renderAbilities(){
+  const c=document.getElementById('abilityList');
+  const it=items[activeItemId];
+  if(!it||!it.abilities){c.innerHTML='';return;}
+  let html='';
+  it.abilities.forEach((ab,i)=>{
+    html+=`<div class="ability-card">
+      <div class="ability-card-hdr"><span>Habilidad ${i+1}: ${ab.id||'ability'+(i+1)}</span>
+      <button class="btn btn-sm btn-danger" onclick="removeAbility(${i})">&#10005;</button></div>
+      <label>Ability ID</label>
+      <input type="text" value="${ab.id||''}" data-ab-id="${i}" onchange="markDirty()" placeholder="ability1">
+      <div class="row">
+        <div><label>Type</label><select data-ab-type="${i}" onchange="markDirty()">`;
+    ABILITY_TYPES.forEach(t=>{html+=`<option value="${t}"${t===ab.type?' selected':''}>${t}</option>`;});
+    html+=`</select></div>
+        <div><label>Mode</label><select data-ab-mode="${i}" onchange="markDirty()">`;
+    ABILITY_MODES.forEach(m=>{html+=`<option value="${m}"${m===ab.mode?' selected':''}>${m}</option>`;});
+    html+=`</select></div></div>
+      <div class="row">
+        <div><label>Damage</label><input type="number" step="0.1" data-ab-dmg="${i}" value="${ab.damage||''}" onchange="markDirty()"></div>
+        <div><label>Cooldown (s)</label><input type="number" step="0.1" data-ab-cd="${i}" value="${ab.cooldown||''}" onchange="markDirty()"></div>
+      </div>
+      <div class="row">
+        <div><label>Duration</label><input type="number" step="0.1" data-ab-dur="${i}" value="${ab.duration||''}" onchange="markDirty()"></div>
+        <div><label>Drain</label><input type="number" step="0.1" data-ab-drain="${i}" value="${ab.drain||''}" onchange="markDirty()"></div>
+      </div>
+      <div class="row">
+        <div><label>Range</label><input type="number" step="0.1" data-ab-range="${i}" value="${ab.range||''}" onchange="markDirty()"></div>
+        <div><label>Ignite</label><input type="number" step="0.1" data-ab-ignite="${i}" value="${ab.ignite||''}" onchange="markDirty()"></div>
+      </div>
+    </div>`;
+  });
+  c.innerHTML=html;
+}
+function saveAbilities(){
+  if(!activeItemId||!items[activeItemId]) return;
+  const it=items[activeItemId];
+  it.abilities.forEach((ab,i)=>{
+    const elId=document.querySelector(`[data-ab-id="${i}"]`);
+    if(elId) ab.id=elId.value;
+    const elT=document.querySelector(`[data-ab-type="${i}"]`);
+    if(elT) ab.type=elT.value;
+    const elM=document.querySelector(`[data-ab-mode="${i}"]`);
+    if(elM) ab.mode=elM.value;
+    const elD=document.querySelector(`[data-ab-dmg="${i}"]`);
+    if(elD) ab.damage=elD.value;
+    const elC=document.querySelector(`[data-ab-cd="${i}"]`);
+    if(elC) ab.cooldown=elC.value;
+    const elDu=document.querySelector(`[data-ab-dur="${i}"]`);
+    if(elDu) ab.duration=elDu.value;
+    const elDr=document.querySelector(`[data-ab-drain="${i}"]`);
+    if(elDr) ab.drain=elDr.value;
+    const elR=document.querySelector(`[data-ab-range="${i}"]`);
+    if(elR) ab.range=elR.value;
+    const elI=document.querySelector(`[data-ab-ignite="${i}"]`);
+    if(elI) ab.ignite=elI.value;
+  });
+}
+
+// ===== DYE COLOR =====
+function parseDyeColor(){
+  const txt=document.getElementById('dyeColorText').value;
+  parseDyeColorToFields(txt);
+}
+function parseDyeColorToFields(txt){
+  if(!txt) return;
+  const parts=txt.trim().split(/\s+/);
+  if(parts.length>=3){
+    document.getElementById('dyeR').value=parts[0]||'';
+    document.getElementById('dyeG').value=parts[1]||'';
+    document.getElementById('dyeB').value=parts[2]||'';
+  }
+}
+function parseArmorColorToFields(txt){
+  if(!txt) return;
+  const parts=txt.trim().split(/\s+/);
+  if(parts.length>=3){
+    document.getElementById('colorR').value=parts[0]||'';
+    document.getElementById('colorG').value=parts[1]||'';
+    document.getElementById('colorB').value=parts[2]||'';
+  }
+}
+
+// ===== YAML GENERATION =====
+function updateYaml(){
+  if(!yamlVisible) return;
+  const el=document.getElementById('yamlLive');
+  el.innerHTML=generateYamlHighlighted();
+}
+function generateYaml(){
+  saveFromEditor();
+  const cat = document.getElementById('categorySelect').value==='__custom__'
+    ? (document.getElementById('customCatInput').value||'custom')
+    : document.getElementById('categorySelect').value;
+  let out='';
+  const ids=Object.keys(items).sort();
+  if(ids.length===0) return '# No items created yet';
+  ids.forEach(id=>{
+    const it=items[id];
+    out+=id+':\n  base:\n';
+    out+=`    material: ${it.material}\n`;
+    if(it.revisionId) out+=`    revision-id: ${it.revisionId}\n`;
+    if(it.customModelDataEnabled && it.customModelData) out+=`    custom-model-data: ${it.customModelData}\n`;
+    if(it.name) out+=`    name: '${it.name.replace(/'/g,"''")}'\n`;
+    if(it.tooltipStyle) out+=`    tooltip-style: ${it.tooltipStyle}\n`;
+    // Lore
+    if(it.lore){
+      const lines=it.lore.split('\n');
+      if(lines.length===1){out+=`    lore: '${lines[0].replace(/'/g,"''")}'\n`;}
+      else{
+        out+='    lore:\n';
+        lines.forEach(l=>{out+=`    - '${l.replace(/'/g,"''")}'\n`;});
+      }
+    }
+    // Skull texture
+    if(it.material.toUpperCase()==='PLAYER_HEAD' && it.skullTexture){
+      out+='    skull-texture:\n';
+      out+=`      value: ${it.skullTexture}\n`;
+      if(it.skullUuid) out+=`      uuid: ${it.skullUuid}\n`;
+    }
+    // Attack damage
+    if(it.atkDmgRange && (it.atkDmgMin||it.atkDmgMax)){
+      out+='    attack-damage:\n';
+      if(it.atkDmgMin) out+=`      min: ${it.atkDmgMin}\n`;
+      if(it.atkDmgMax) out+=`      max: ${it.atkDmgMax}\n`;
+    } else if(it.attackDmgSimple){
+      out+=`    attack-damage: ${it.attackDmgSimple}\n`;
+    }
+    // Stats
+    if(it.armor) out+=`    armor: ${it.armor}\n`;
+    if(it.pvpDmg) out+=`    pvp-damage: ${it.pvpDmg}\n`;
+    if(it.pveDmg) out+=`    pve-damage: ${it.pveDmg}\n`;
+    if(it.defense) out+=`    defense: ${it.defense}\n`;
+    if(it.maxHealth) out+=`    max-health: ${it.maxHealth}\n`;
+    if(it.critChance) out+=`    critical-strike-chance: ${it.critChance}\n`;
+    if(it.critPower) out+=`    critical-strike-power: ${it.critPower}\n`;
+    if(it.blockPower) out+=`    block-power: ${it.blockPower}\n`;
+    if(it.dodgeChance) out+=`    dodge-chance: ${it.dodgeChance}\n`;
+    if(it.miningEff) out+=`    mining-efficiency: ${it.miningEff}\n`;
+    if(it.submergedMining) out+=`    submerged-mining-speed: ${it.submergedMining}\n`;
+    if(it.maxDurability) out+=`    max-durability: ${it.maxDurability}\n`;
+    if(it.durability) out+=`    durability: ${it.durability}\n`;
+    // Restore
+    if(it.restoreHealth) out+=`    restore-health: ${it.restoreHealth}\n`;
+    if(it.restoreFood) out+=`    restore-food: ${it.restoreFood}\n`;
+    if(it.restoreSaturation) out+=`    restore-saturation: ${it.restoreSaturation}\n`;
+    if(it.restoreMana) out+=`    restore-mana: ${it.restoreMana}\n`;
+    if(it.restoreStamina) out+=`    restore-stamina: ${it.restoreStamina}\n`;
+    if(it.itemCooldown) out+=`    item-cooldown: ${it.itemCooldown}\n`;
+    if(it.repair) out+=`    repair: ${it.repair}\n`;
+    if(it.requiredLevel) out+=`    required-level: ${it.requiredLevel}\n`;
+    if(it.soulboundLevel) out+=`    soulbound-level: ${it.soulboundLevel}\n`;
+    if(it.soulbindingChance) out+=`    soulbinding-chance: ${it.soulbindingChance}\n`;
+    if(it.tier) out+=`    tier: ${it.tier}\n`;
+    // Commands (consumible)
+    if(it.consumible && it.commands && it.commands.length>0){
+      out+='    commands:\n';
+      it.commands.forEach((cmd, i)=>{
+        const cmdKey = `cmd${i}`;
+        out+=`      ${cmdKey}:\n`;
+        out+=`        format: ${cmd.format||''}\n`;
+        if(cmd.delay) out+=`        delay: ${cmd.delay}\n`;
+        if(cmd.console) out+=`        console: true\n`;
+      });
+    }
+    // Enchants
+    if(it.enchantsEnabled && Object.keys(it.enchants).length>0){
+      out+='    enchants:\n';
+      Object.keys(it.enchants).forEach(e=>{out+=`      ${e}: ${it.enchants[e]}\n`;});
+    }
+    // Effects
+    if(it.effectsEnabled && it.effects.length>0){
+      out+='    effects:\n';
+      it.effects.forEach(ef=>{
+        out+=`      ${ef.type}:\n`;
+        out+=`        duration: ${ef.duration}\n`;
+        out+=`        amplifier: ${ef.amplifier}\n`;
+      });
+    }
+    // Abilities
+    if(it.abilities && it.abilities.length>0){
+      out+='    ability:\n';
+      it.abilities.forEach(ab=>{
+        out+=`      ${ab.id||'ability1'}:\n`;
+        out+=`        type: ${ab.type}\n`;
+        out+=`        mode: ${ab.mode}\n`;
+        if(ab.damage) out+=`        damage: ${ab.damage}\n`;
+        if(ab.cooldown!=='') out+=`        cooldown: ${ab.cooldown}\n`;
+        if(ab.duration) out+=`        duration: ${ab.duration}\n`;
+        if(ab.drain) out+=`        drain: ${ab.drain}\n`;
+        if(ab.range) out+=`        range: ${ab.range}\n`;
+        if(ab.ignite) out+=`        ignite: ${ab.ignite}\n`;
+      });
+    }
+    // Booleans
+    if(it.unbreakable) out+='    unbreakable: true\n';
+    if(it.unstackable) out+='    unstackable: true\n';
+    if(it.durabilityBar) out+='    durability-bar: true\n';
+    if(it.willBreak) out+='    will-break: true\n';
+    if(it.disableCrafting) out+='    disable-crafting: true\n';
+    if(it.disableSmelting) out+='    disable-smelting: true\n';
+    if(it.disableSmithing) out+='    disable-smithing: true\n';
+    if(it.disableEnchanting) out+='    disable-enchanting: true\n';
+    if(it.disableRepairing) out+='    disable-repairing: true\n';
+    if(it.disableDroping) out+='    disable-droping: true\n';
+    if(it.disableDeathDrop) out+='    disable-death-drop: true\n';
+    if(it.disableInteraction) out+='    disable-interaction: true\n';
+    if(it.hideEnchants) out+='    hide-enchants: true\n';
+    if(it.hideDye) out+='    hide-dye: true\n';
+    if(it.hidePotionEffects) out+='    hide-potion-effects: true\n';
+    if(it.vanillaEating) out+='    vanilla-eating: true\n';
+    if(it.disableRightClickConsume) out+='    disable-right-click-consume: true\n';
+    // Equip
+    if(it.equipSlot) out+=`    equippable-slot: ${it.equipSlot}\n`;
+    if(it.customModelDataEnabled && it.equipModel) out+=`    equippable-model: ${it.equipModel}\n`;
+    // Dye color
+    if(it.dyeColor) out+=`    dye-color: ${it.dyeColor}\n`;
+    // Armor color
+    if(it.armorColor) out+=`    color: ${it.armorColor}\n`;
+    out+='\n';
+  });
+  return out;
+}
+function generateYamlHighlighted(){
+  const raw=generateYaml();
+  return raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^(\s*)([\w][\w-]*):[ \t]+(.+)$/gm,'$1<span class="k">$2</span>: <span class="v">$3</span>')
+    .replace(/^(\s*)([\w][\w-]*):$/gm,'$1<span class="k">$2</span>:')
+    .replace(/^(\s*)- /gm,'$1<span class="v">- </span>')
+    .replace(/^(\s*#.*)$/gm,'<span class="c">$1</span>');
+}
+
+function toggleYaml(){
+  yamlVisible=!yamlVisible;
+  document.getElementById('yamlSectionHdr').style.display=yamlVisible?'flex':'none';
+  document.getElementById('yamlSectionBody').classList.toggle('show',yamlVisible);
+  if(yamlVisible) updateYaml();
+}
+function copyYaml(){
+  const txt=generateYaml();
+  navigator.clipboard.writeText(txt).then(()=>alert('YAML copiado!'));
+}
+function exportYaml(){
+  const txt=generateYaml();
+  const blob=new Blob([txt],{type:'text/yaml'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  const cat=document.getElementById('categorySelect').value==='__custom__'
+    ?(document.getElementById('customCatInput').value||'custom')
+    :document.getElementById('categorySelect').value;
+  a.download=cat+'.yml';
+  a.click();
+}
+
+// ===== PREVIEW =====
+function updatePreview(){
+  if(!activeItemId||!items[activeItemId]) return;
+  saveFromEditor();
+  const it=items[activeItemId];
+  const wikiUrl=getWikiIconUrl(it.material);
+  const img=document.getElementById('prevIconImg');
+  const fb=document.getElementById('prevIconFallback');
+  if(img&&fb){img.src=wikiUrl;img.style.display='block';fb.style.display='none';}
+  document.getElementById('prevName').innerHTML=renderColoredText(it.name||it.material);
+  document.getElementById('prevLore').innerHTML=it.lore?it.lore.split('\n').map(l=>renderColoredText(l)).join('<br>'):'';
+}
+
+// ===== COLORED TEXT RENDERING =====
+function renderColoredText(s){
+  if(!s) return '';
+  const colorMap={'0':'#000000','1':'#0000AA','2':'#00AA00','3':'#00AAAA','4':'#AA0000','5':'#AA00AA','6':'#FFAA00','7':'#AAAAAA','8':'#555555','9':'#5555FF','a':'#55FF55','b':'#55FFFF','c':'#FF5555','d':'#FF55FF','e':'#FFFF55','f':'#FFFFFF'};
+  const formatMap={'l':'font-weight:bold','o':'font-style:italic','n':'text-decoration:underline','m':'text-decoration:line-through'};
+  const HEX_OPEN='\u0001HX\u0002',HEX_CLOSE='\u0003',GRAD_OPEN='\u0001GD\u0002',GRAD_CLOSE='\u0001EG\u0002';
+  let processed=s.replace(/&#([0-9a-fA-F]{6})/g,HEX_OPEN+'#$1'+HEX_CLOSE);
+  processed=processed.replace(/<gradient:#[0-9a-fA-F]{6}:#[0-9a-fA-F]{6}>/g,function(m){const c=m.match(/#[0-9a-fA-F]{6}/g);return GRAD_OPEN+c[0]+':'+c[1]+GRAD_CLOSE;});
+  processed=processed.replace(/<\/gradient>/g,GRAD_CLOSE);
+  // Also handle §x§R§R§G§G§B§B pattern
+  processed=processed.replace(/§x(§[0-9a-fA-F]){6}/g,function(m){const hex='#'+m.replace(/§x/g,'').replace(/§/g,'');return HEX_OPEN+hex+HEX_CLOSE;});
+  let html='';let currentStyle='';let i=0;
+  while(i<processed.length){
+    if(processed.substr(i,HEX_OPEN.length)===HEX_OPEN){
+      const end=processed.indexOf(HEX_CLOSE,i+HEX_OPEN.length);
+      if(end>0){const hex=processed.substring(i+HEX_OPEN.length,end);html+='</span><span style="'+currentStyle+'color:'+hex+'">';i=end+HEX_CLOSE.length;continue;}
+    }
+    if(processed.substr(i,GRAD_OPEN.length)===GRAD_OPEN){
+      const end=processed.indexOf(GRAD_CLOSE,i+GRAD_OPEN.length);
+      if(end>0){const gc=processed.substring(i+GRAD_OPEN.length,end);html+='</span><span style="'+currentStyle+'background:linear-gradient(90deg,'+gc.replace(':',',') +');-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">';i=end+GRAD_CLOSE.length;continue;}
+    }
+    if(processed.substr(i,GRAD_CLOSE.length)===GRAD_CLOSE){html+='</span><span style="'+currentStyle+'">';i+=GRAD_CLOSE.length;continue;}
+    if(processed[i]==='&'&&i+1<processed.length){
+      const code=processed[i+1].toLowerCase();
+      if(colorMap[code]){currentStyle=currentStyle.replace(/color:[^;]+;?/g,'');html+='</span><span style="color:'+colorMap[code]+';'+currentStyle+'">';i+=2;continue;}
+      if(formatMap[code]){currentStyle+=formatMap[code]+';';html+='</span><span style="'+currentStyle+'">';i+=2;continue;}
+      if(code==='r'){currentStyle='';html+='</span><span>';i+=2;continue;}
+    }
+    const ch=processed[i];html+=ch==='<'?'&lt;':ch==='>'?'&gt;':ch==='&'?'&amp;':ch;i++;
+  }
+  return html;
+}
+
+// ===== MATERIAL PICKER =====
+let matPickerCallback=null;
+function itemIdToPascal(itemId){return itemId.toLowerCase().split('_').map(function(w){return w.charAt(0).toUpperCase()+w.slice(1);}).join('_');}
+const WIKI_ICON_OVERRIDE={
+  'player_head':'Player_Head','diamond_block':'Block_of_Diamond','emerald_block':'Block_of_Emerald',
+  'gold_block':'Block_of_Gold','iron_block':'Block_of_Iron','netherite_block':'Block_of_Netherite',
+  'lapis_block':'Block_of_Lapis_Lazuli','redstone_block':'Block_of_Redstone','coal_block':'Block_of_Coal',
+  'golden_apple':'Golden_Apple','enchanted_golden_apple':'Enchanted_Golden_Apple',
+  'experience_bottle':'Bottle_o%27_Enchanting','ender_eye':'Eye_of_Ender','nether_star':'Nether_Star',
+  'cooked_beef':'Steak','tripwire_hook':'Tripwire_Hook'
+};
+function getWikiIconUrl(itemId){
+  const pascal=WIKI_ICON_OVERRIDE[itemId.toLowerCase()]||itemIdToPascal(itemId);
+  return 'https://minecraft.wiki/images/Invicon_'+pascal+'.png';
+}
+function wikiImgError(img){
+  if(img.src.endsWith('.png')){img.src=img.src.replace(/\.png$/,'.gif');return;}
+  img.style.display='none';
+  const fb=document.getElementById('prevIconFallback');if(fb)fb.style.display='block';
+}
+function openMaterialPicker(cb,currentVal){
+  matPickerCallback=cb;
+  const modal=document.getElementById('matModal');
+  modal.classList.add('show');
+  document.getElementById('matModalSearch').value='';
+  renderMaterialGrid(currentVal);
+  setTimeout(()=>document.getElementById('matModalSearch').focus(),50);
+}
+function closeMaterialPicker(){document.getElementById('matModal').classList.remove('show');matPickerCallback=null;}
+function renderMaterialGrid(filter){
+  const grid=document.getElementById('matModalGrid');
+  const f=(filter||'').toUpperCase();
+  const matches=MC_ITEMS.filter(i=>!f||i.includes(f));
+  let html='';
+  matches.forEach(item=>{
+    const c=ITEM_COLORS[item]||'#888';
+    const wikiUrl=getWikiIconUrl(item);
+    html+=`<div class="mat-grid-item" onclick="pickMaterial('${item}')">
+      <img src="${wikiUrl}" style="width:20px;height:20px;image-rendering:pixelated;flex-shrink:0" onerror="this.style.display='none'">
+      <div class="mat-dot" style="background:${c}"></div>
+      <div class="mat-label">${item}</div>
+    </div>`;
+  });
+  grid.innerHTML=html;
+}
+function filterModalItems(){renderMaterialGrid(document.getElementById('matModalSearch').value);}
+function pickMaterial(item){
+  if(matPickerCallback) matPickerCallback(item);
+  closeMaterialPicker();
+}
+
+// ===== FORMAT MODAL =====
+let _fmtModalInputId=null,_fmtModalSelStart=0,_fmtModalSelEnd=0;
+function openFmtModal(inputId){
+  _fmtModalInputId=inputId;
+  const input=document.getElementById(inputId);
+  if(input){_fmtModalSelStart=input.selectionStart||0;_fmtModalSelEnd=input.selectionEnd||0;}
+  const modal=document.getElementById('fmtModal');
+  const body=document.getElementById('fmtModalBody');
+  const target=document.getElementById('fmtModalTarget');
+  const selectedText=input?input.value.substring(_fmtModalSelStart,_fmtModalSelEnd):'';
+  target.textContent='Campo: '+inputId;
+  let html='<div class="fmt-editor-wrap"><div class="fmt-editor-label"><span>Editor de texto</span></div>';
+  html+=`<textarea class="fmt-editor-textarea" id="fmtEditorText" rows="2" placeholder="Escribe aqui..." oninput="updateFmtPreview()">${escHtml(selectedText)}</textarea>`;
+  html+='<div class="fmt-editor-preview" id="fmtEditorPreview"></div></div>';
+  html+='<div class="fmt-section-title">Colores</div><div class="fmt-color-grid">';
+  MC_COLORS.forEach(c=>{const tc=['e','f','7','8','9','a','b'].includes(c.code)?'#000':'#fff';html+=`<div class="fmt-color" style="background:${c.hex};color:${tc}" title="&${c.code}" onclick="fmtEditorInsert('&${c.code}')">${c.code.toUpperCase()}</div>`;});
+  html+='</div><div class="fmt-section-title">Formato</div><div class="fmt-color-grid">';
+  MC_FORMATS.forEach(f=>{html+=`<div class="fmt-color fmt-reset" style="background:#30363d" title="${f.title} (&${f.code})" onclick="fmtEditorInsert('&${f.code}')">${f.label}</div>`;});
+  html+=`<div class="fmt-color fmt-reset" style="background:#30363d" title="Reset (&r)" onclick="fmtEditorInsert('&r')">R</div></div>`;
+  html+='<div class="fmt-section-title">Hex</div><div class="fmt-hex-wrap"><input type="color" id="fmtHexPicker" value="#ff5555"><button class="btn btn-secondary btn-sm" style="padding:4px 10px;font-size:.7rem" onclick="fmtEditorInsertHex()">Insertar Hex</button></div>';
+  html+='<div class="fmt-section-title">Gradiente</div><div class="fmt-grad-wrap"><input type="color" id="fmtGradStart" value="#8CE9FF" title="Inicio"><span style="color:#484f58;font-size:.75rem">\u2192</span><input type="color" id="fmtGradEnd" value="#9CFF8C" title="Fin"><button class="btn btn-secondary btn-sm" style="padding:4px 10px;font-size:.7rem" onclick="fmtEditorInsertGradient()">Aplicar Gradiente</button></div>';
+  html+='<div class="fmt-section-title">Simbolos</div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn btn-secondary btn-sm" style="padding:6px 12px;font-size:.75rem" onclick="openEmojiModalFromFmt()">&#9786; Insertar Simbolo</button></div>';
+  html+='<div class="fmt-editor-insert"><button class="btn btn-secondary" onclick="closeFmtModal()">Cancelar</button><button class="btn btn-primary" onclick="commitFmtEditor()">Insertar</button></div>';
+  body.innerHTML=html;
+  modal.classList.add('show');
+  const editor=document.getElementById('fmtEditorText');
+  if(editor){editor.focus();editor.setSelectionRange(editor.value.length,editor.value.length);updateFmtPreview();}
+}
+function updateFmtPreview(){
+  const editor=document.getElementById('fmtEditorText');const preview=document.getElementById('fmtEditorPreview');
+  if(!editor||!preview)return;
+  if(!editor.value){preview.innerHTML='';preview.style.display='none';}
+  else{preview.innerHTML=renderColoredText(editor.value);preview.style.display='block';}
+}
+function fmtEditorInsert(code){
+  const editor=document.getElementById('fmtEditorText');if(!editor)return;
+  const s=editor.selectionStart,e=editor.selectionEnd,v=editor.value;
+  editor.value=v.substring(0,s)+code+v.substring(e);
+  const np=s+code.length;editor.focus();editor.setSelectionRange(np,np);updateFmtPreview();
+}
+function fmtEditorInsertHex(){const p=document.getElementById('fmtHexPicker');if(!p)return;fmtEditorInsert('&#'+p.value.replace('#',''));}
+function fmtEditorInsertGradient(){
+  const editor=document.getElementById('fmtEditorText');if(!editor)return;
+  const sc=document.getElementById('fmtGradStart').value.replace('#',''),ec=document.getElementById('fmtGradEnd').value.replace('#','');
+  const s=editor.selectionStart,e=editor.selectionEnd,v=editor.value;
+  let sel=v.substring(s,e)||'texto';
+  const g='<gradient:#'+sc+':#'+ec+'>'+sel+'</gradient>';
+  editor.value=v.substring(0,s)+g+v.substring(e);
+  const np=s+g.length;editor.focus();editor.setSelectionRange(s,np);updateFmtPreview();
+}
+function commitFmtEditor(){
+  const editor=document.getElementById('fmtEditorText');const input=document.getElementById(_fmtModalInputId);
+  if(!editor||!input){closeFmtModal();return;}
+  const text=editor.value;
+  if(text){const v=input.value;input.value=v.substring(0,_fmtModalSelStart)+text+v.substring(_fmtModalSelEnd);const np=_fmtModalSelStart+text.length;_fmtModalSelStart=np;_fmtModalSelEnd=np;input.focus();input.setSelectionRange(np,np);input.dispatchEvent(new Event('input'));}
+  closeFmtModal();
+}
+function closeFmtModal(){document.getElementById('fmtModal').classList.remove('show');_fmtModalInputId=null;}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(document.getElementById('fmtModal').classList.contains('show'))closeFmtModal();if(document.getElementById('emojiModal').classList.contains('show'))closeEmojiModal();}});
+
+// ===== EMOJI PICKER =====
+let _emojiTargetInputId=null;
+function buildEmojiPicker(){
+  const grid=document.getElementById('emojiGrid');if(!grid)return;
+  let html='';MC_UNICODE.forEach(emoji=>{html+=`<button class="emoji-btn" data-symbol="${emoji}" onclick="insertEmoji('${emoji}')" title="${emoji}">${emoji}</button>`;});
+  grid.innerHTML=html;
+}
+function openEmojiModalFromFmt(){_emojiTargetInputId='__fmtEditor__';document.getElementById('emojiModal').classList.add('show');buildEmojiPicker();setTimeout(()=>document.getElementById('emojiSearch').focus(),50);}
+function closeEmojiModal(){document.getElementById('emojiModal').classList.remove('show');document.getElementById('emojiSearch').value='';_emojiTargetInputId=null;}
+function filterEmojis(){const s=document.getElementById('emojiSearch').value.toLowerCase();document.querySelectorAll('.emoji-btn').forEach(b=>{b.style.display=!s||b.getAttribute('data-symbol').includes(s)?'':'none';});}
+function insertEmoji(emoji){
+  if(_emojiTargetInputId==='__fmtEditor__'){
+    const editor=document.getElementById('fmtEditorText');if(!editor)return;
+    const s=editor.selectionStart,e=editor.selectionEnd,v=editor.value;
+    editor.value=v.substring(0,s)+emoji+v.substring(e);const np=s+emoji.length;editor.focus();editor.setSelectionRange(np,np);updateFmtPreview();return;
+  }
+}
+
+// ===== UTILS =====
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ===== EQUIP SLOT CHANGE =====
+document.getElementById('equipSlot').addEventListener('change',function(){toggleEquipModel();markDirty();});
+document.getElementById('dyeR').addEventListener('input',function(){updateDyeColorText();});
+document.getElementById('dyeG').addEventListener('input',function(){updateDyeColorText();});
+document.getElementById('dyeB').addEventListener('input',function(){updateDyeColorText();});
+document.getElementById('colorR').addEventListener('input',function(){updateArmorColorText();});
+document.getElementById('colorG').addEventListener('input',function(){updateArmorColorText();});
+document.getElementById('colorB').addEventListener('input',function(){updateArmorColorText();});
+function updateDyeColorText(){
+  const r=document.getElementById('dyeR').value,g=document.getElementById('dyeG').value,b=document.getElementById('dyeB').value;
+  if(r&&g&&b) document.getElementById('dyeColorText').value=r+' '+g+' '+b;
+}
+function updateArmorColorText(){
+  const r=document.getElementById('colorR').value,g=document.getElementById('colorG').value,b=document.getElementById('colorB').value;
+  if(r&&g&&b){
+    const it=items[activeItemId];if(it) it.armorColor=r+' '+g+' '+b;
+  }
+}
+
+// ===== INIT =====
+buildEmojiPicker();
+</script>
+</body>
+</html>

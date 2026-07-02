@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mines Payout Calculator</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a1a2e;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;padding:20px}
+.container{max-width:1100px;margin:0 auto}
+h1{text-align:center;font-size:1.6rem;margin-bottom:6px;color:#00d4ff;text-transform:uppercase;letter-spacing:3px}
+.subtitle{text-align:center;color:#666;font-size:.85rem;margin-bottom:24px}
+.top-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.card{background:#16213e;border:1px solid #0f3460;border-radius:12px;padding:20px}
+.card h2{font-size:.95rem;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #0f3460}
+.diff-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.diff-btn{padding:12px 8px;border:2px solid transparent;border-radius:8px;cursor:pointer;font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:1px;transition:all .2s;background:#0a0a1a;color:#888}
+.diff-btn:hover{transform:translateY(-2px)}
+.diff-btn.active{border-color:var(--c);color:var(--c);background:#0f1a30}
+.diff-btn[data-d="easy"]{--c:#4ade80}
+.diff-btn[data-d="medium"]{--c:#facc15}
+.diff-btn[data-d="hard"]{--c:#f87171}
+.diff-btn[data-d="insane"]{--c:#dc2626}
+.param-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.param{display:flex;flex-direction:column;gap:4px}
+.param label{font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:#888}
+.param input,.param select{background:#0a0a1a;border:1px solid #0f3460;border-radius:6px;padding:8px 10px;color:#e0e0e0;font-size:.95rem;outline:none;transition:border .2s}
+.param input:focus{border-color:#00d4ff}
+.param.full{grid-column:1/-1}
+.bet-row{display:flex;gap:8px;align-items:end;margin-top:6px}
+.bet-row .param{flex:1}
+.quick-bets{display:flex;gap:6px;align-items:end;padding-bottom:2px}
+.quick-bet{background:#0f3460;border:none;color:#00d4ff;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:600;transition:all .2s}
+.quick-bet:hover{background:#00d4ff;color:#0a0a1a}
+.calc-btn{width:100%;margin-top:14px;padding:14px;background:linear-gradient(135deg,#00d4ff,#0077b6);border:none;border-radius:8px;color:#fff;font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.calc-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,212,255,.3)}
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat-box{background:#0a0a1a;border-radius:8px;padding:14px;text-align:center}
+.stat-box .label{font-size:.65rem;text-transform:uppercase;letter-spacing:1px;color:#666;margin-bottom:4px}
+.stat-box .value{font-size:1.3rem;font-weight:700;color:#00d4ff}
+.stat-box .value.green{color:#4ade80}
+.stat-box .value.yellow{color:#facc15}
+.stat-box .value.red{color:#f87171}
+.table-wrap{overflow-x:auto;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{background:#0a0a1a;padding:10px 8px;text-align:center;font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:#888;border-bottom:2px solid #0f3460}
+td{padding:9px 8px;text-align:center;border-bottom:1px solid #0f3460}
+tr:hover td{background:#0f1a30}
+.highlight td{background:#0f3460;font-weight:700}
+.highlight td:nth-child(4){color:#4ade80}
+td.profit-pos{color:#4ade80}
+td.profit-neg{color:#f87171}
+td.mult{color:#00d4ff;font-weight:600}
+.yaml-box{margin-top:16px;background:#0a0a1a;border:1px solid #0f3460;border-radius:8px;padding:14px;font-family:'Cascadia Code','Fira Code',monospace;font-size:.8rem;color:#4ade80;white-space:pre;line-height:1.5;overflow-x:auto}
+.yaml-box .key{color:#f87171}
+.yaml-box .val{color:#facc15}
+.yaml-box .cmt{color:#555}
+.copy-btn{float:right;background:#0f3460;border:none;color:#00d4ff;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:.75rem}
+.copy-btn:hover{background:#00d4ff;color:#0a0a1a}
+.insane-badge{display:inline-block;background:#dc2626;color:#fff;font-size:.6rem;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle}
+@media(max-width:700px){.top-grid,.param-grid,.summary-grid{grid-template-columns:1fr}.diff-btns{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>&#9874; Mines Payout Calculator</h1>
+<p class="subtitle">TrMenu Minesweeper Casino &mdash; Payout Curve Simulator</p>
+
+<div class="top-grid">
+  <div class="card">
+    <h2>&#9881; Configuracion</h2>
+    <div class="diff-btns">
+      <button class="diff-btn active" data-d="easy" onclick="selectDiff('easy')">Facil</button>
+      <button class="diff-btn" data-d="medium" onclick="selectDiff('medium')">Medio</button>
+      <button class="diff-btn" data-d="hard" onclick="selectDiff('hard')">Dificil</button>
+      <button class="diff-btn" data-d="insane" onclick="selectDiff('insane')">Locura</button>
+    </div>
+    <div class="param-grid">
+      <div class="param"><label>Chance Mina (%)</label><input type="number" id="mineChance" value="15" min="1" max="100" step="1"></div>
+      <div class="param"><label>Escalacion (+%)</label><input type="number" id="escalation" value="1.5" min="0" max="20" step="0.1"></div>
+      <div class="param"><label>Max Minas</label><input type="number" id="maxMines" value="3" min="1" max="20" step="1"></div>
+      <div class="param"><label>Multiplicador Max</label><input type="number" id="maxMult" value="4.0" min="1.01" max="1000" step="0.01"></div>
+      <div class="param" id="safeSlotsWrap" style="display:none"><label>Safe Slots (Insane)</label><input type="number" id="safeSlots" value="1" min="1" max="20" step="1"></div>
+      <div class="param" id="costWrap" style="display:none"><label>Coste Fijo (Insane)</label><input type="number" id="fixedCost" value="50000000" min="0" step="1000"></div>
+    </div>
+    <div class="bet-row" style="margin-top:14px">
+      <div class="param"><label>Apuesta ($)</label><input type="number" id="betAmount" value="100000" min="1" step="1"></div>
+      <div class="quick-bets">
+        <button class="quick-bet" onclick="setBet(10000)">10K</button>
+        <button class="quick-bet" onclick="setBet(100000)">100K</button>
+        <button class="quick-bet" onclick="setBet(1000000)">1M</button>
+        <button class="quick-bet" onclick="setBet(10000000)">10M</button>
+        <button class="quick-bet" onclick="setBet(50000000)">50M</button>
+      </div>
+    </div>
+    <button class="calc-btn" onclick="calculate()">&#9889; Calcular Payouts</button>
+  </div>
+
+  <div class="card">
+    <h2>&#128202; Resumen</h2>
+    <div class="summary-grid">
+      <div class="stat-box"><div class="label">Slots Totales</div><div class="value" id="sTotalSlots">20</div></div>
+      <div class="stat-box"><div class="label">Slots Seguros</div><div class="value green" id="sSafeSlots">17</div></div>
+      <div class="stat-box"><div class="label">Rate por Slot</div><div class="value yellow" id="sRate">1.084</div></div>
+      <div class="stat-box"><div class="label">Casa Edge Est.</div><div class="value red" id="sHouseEdge">--</div></div>
+    </div>
+    <div class="yaml-box" id="yamlOutput"><button class="copy-btn" onclick="copyYaml()">Copiar YAML</button><span class="cmt"># Config generada para mines.yml</span>
+<span class="key">easy</span>:
+  <span class="key">name</span>: <span class="val">'Facil'</span>
+  <span class="key">mineChance</span>: <span class="val">15</span>
+  <span class="key">escalation</span>: <span class="val">1.5</span>
+  <span class="key">maxMines</span>: <span class="val">3</span>
+  <span class="key">max</span>: <span class="val">4.0</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>&#128176; Tabla de Payouts</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Safe Slot #</th><th>Multiplicador</th><th>Premio Total</th><th>Ganancia Neta</th><th>% Profit</th><th>Riesgo Acumulado</th></tr>
+      </thead>
+      <tbody id="payoutBody">
+        <tr><td colspan="6" style="color:#666;padding:30px">Haz clic en CALCULAR para generar la tabla</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<script>
+const TOTAL=20;
+const presets={
+  easy:{mineChance:15,escalation:1.5,maxMines:3,maxMult:4.0,safeSlots:null,cost:null},
+  medium:{mineChance:25,escalation:2,maxMines:5,maxMult:2.0,safeSlots:null,cost:null},
+  hard:{mineChance:40,escalation:3,maxMines:8,maxMult:4.0,safeSlots:null,cost:null},
+  insane:{mineChance:99,escalation:4,maxMines:19,maxMult:50,safeSlots:1,cost:50000000}
+};
+let currentDiff='easy';
+
+function selectDiff(d){
+  currentDiff=d;
+  document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`[data-d="${d}"]`).classList.add('active');
+  const p=presets[d];
+  document.getElementById('mineChance').value=p.mineChance;
+  document.getElementById('escalation').value=p.escalation;
+  document.getElementById('maxMines').value=p.maxMines;
+  document.getElementById('maxMult').value=p.maxMult;
+  document.getElementById('safeSlots').value=p.safeSlots||1;
+  document.getElementById('fixedCost').value=p.cost||50000000;
+  const isInsane=d==='insane';
+  document.getElementById('safeSlotsWrap').style.display=isInsane?'flex':'none';
+  document.getElementById('costWrap').style.display=isInsane?'flex':'none';
+  calculate();
+}
+
+function setBet(v){document.getElementById('betAmount').value=v;calculate()}
+
+function fmt(n){
+  if(n>=1e9)return(n/1e9).toFixed(2)+'B';
+  if(n>=1e6)return(n/1e6).toFixed(2)+'M';
+  if(n>=1e3&&n<1e6)return n>=1e4?(n/1e3).toFixed(1)+'K':n.toLocaleString('en',{maximumFractionDigits:0});
+  return n.toLocaleString('en',{maximumFractionDigits:2});
+}
+
+function fmtFull(n){return n.toLocaleString('en',{maximumFractionDigits:2})}
+
+function calculate(){
+  const mc=parseFloat(document.getElementById('mineChance').value)||15;
+  const esc=parseFloat(document.getElementById('escalation').value)||1.5;
+  const mm=parseInt(document.getElementById('maxMines').value)||3;
+  const mx=parseFloat(document.getElementById('maxMult').value)||4.0;
+  const bet=parseFloat(document.getElementById('betAmount').value)||100000;
+  const ss=currentDiff==='insane'?(parseInt(document.getElementById('safeSlots').value)||1):null;
+
+  const safe=TOTAL-mm;
+  const effectiveSafe=ss?Math.min(ss,safe):safe;
+  const rate=Math.pow(mx,1/effectiveSafe);
+
+  document.getElementById('sTotalSlots').textContent=TOTAL;
+  document.getElementById('sSafeSlots').textContent=safe+(ss?' ('+ss+' needed)':'');
+  document.getElementById('sRate').textContent='x'+rate.toFixed(4);
+
+  let html='';
+  let maxSafe=ss||safe;
+  let highlightSlot=Math.min(5,maxSafe);
+
+  for(let i=1;i<=maxSafe;i++){
+    const mult=Math.pow(rate,i);
+    const winnings=bet*mult;
+    const profit=winnings-bet;
+    const pct=((mult-1)*100).toFixed(1);
+    let risk='';
+    for(let s=0;s<i;s++){
+      let ch=mc/100+s*(esc/100);
+      ch=Math.min(ch,1.0);
+      if(mm<=s)ch=0;
+      let remaining=TOTAL-s;
+      let minesLeft=mm-s;
+      if(minesLeft>=remaining)ch=1.0;
+      if(ss){
+        let safeFound=s;
+        let neededSafe=ss-safeFound;
+        if(safeFound>=ss)ch=1.0;
+        else if(remaining<=neededSafe)ch=0;
+      }
+      let surv=1-ch;
+      if(s===0)risk=surv.toFixed(2)+'%';
+      else{
+        let prev=parseFloat(risk)||100;
+        risk=(prev*surv/100).toFixed(2)+'%';
+      }
+    }
+
+    const cls=i===highlightSlot?'highlight':'';
+    const profitCls=profit>=0?'profit-pos':'profit-neg';
+
+    html+=`<tr class="${cls}">
+      <td><strong>${i}</strong></td>
+      <td class="mult">x${mult.toFixed(4)}</td>
+      <td>$${fmtFull(winnings)}</td>
+      <td class="${profitCls}">+${fmtFull(profit)}</td>
+      <td class="${profitCls}">${pct}%</td>
+      <td>${risk}</td>
+    </tr>`;
+  }
+
+  document.getElementById('payoutBody').innerHTML=html;
+
+  // House edge estimate
+  let ev=0;
+  for(let i=1;i<=maxSafe;i++){
+    const mult=Math.pow(rate,i);
+    const profit=bet*(mult-1);
+    let ch=mc/100+(i-1)*(esc/100);
+    ch=Math.min(ch,1.0);
+    if(mm<=(i-1))ch=0;
+    let remaining=TOTAL-(i-1);
+    let minesLeft=mm-(i-1);
+    if(minesLeft>=remaining)ch=1.0;
+    if(ss){
+      let safeFound=i-1;
+      let neededSafe=ss-safeFound;
+      if(safeFound>=ss)ch=1.0;
+      else if(remaining<=neededSafe)ch=0;
+    }
+    let survChance=1;
+    for(let s=0;s<i;s++){
+      let c2=mc/100+s*(esc/100);
+      c2=Math.min(c2,1.0);
+      if(mm<=s)c2=0;
+      let rem2=TOTAL-s;
+      let ml2=mm-s;
+      if(ml2>=rem2)c2=1.0;
+      survChance*=(1-c2);
+    }
+    let dieHere=0;
+    if(i<maxSafe){
+      let cNext=mc/100+i*(esc/100);
+      cNext=Math.min(cNext,1.0);
+      if(mm<=i)cNext=0;
+      let remN=TOTAL-i;
+      let mlN=mm-i;
+      if(mlN>=remN)cNext=1.0;
+      if(ss){
+        let sf=i;
+        if(sf>=ss)cNext=1.0;
+        else if(remN<=(ss-sf))cNext=0;
+      }
+      dieHere=survChance*cNext;
+    }else{
+      dieHere=survChance;
+    }
+    ev+=dieHere*profit;
+  }
+  ev-=bet*(1-(()=>{let s=1;for(let i=0;i<maxSafe;i++){let c=mc/100+i*(esc/100);c=Math.min(c,1);if(mm<=i)c=0;let r=TOTAL-i;let m=mm-i;if(m>=r)c=1;s*=(1-c)}return s})());
+  const he=(((-bet)/bet)*100).toFixed(1);
+  document.getElementById('sHouseEdge').textContent=parseFloat(he)<0?he+'%':'+'+he+'%';
+
+  // YAML output
+  const dn={easy:'Facil',medium:'Medio',hard:'Dificil',insane:'Locura'};
+  let yaml=`<button class="copy-btn" onclick="copyYaml()">Copiar YAML</button>`;
+  yaml+=`<span class="cmt"># Config para mines.yml - ${dn[currentDiff]}</span>\n`;
+  yaml+=`<span class="key">${currentDiff}</span>:\n`;
+  yaml+=`  <span class="key">name</span>: <span class="val">'${dn[currentDiff]}'</span>\n`;
+  yaml+=`  <span class="key">mineChance</span>: <span class="val">${mc}</span>        <span class="cmt"># % chance mina en primer click</span>\n`;
+  yaml+=`  <span class="key">escalation</span>: <span class="val">${esc}</span>       <span class="cmt"># +% por cada slot seguro</span>\n`;
+  yaml+=`  <span class="key">maxMines</span>: <span class="val">${mm}</span>           <span class="cmt"># limite maximo de minas</span>\n`;
+  if(ss)yaml+=`  <span class="key">safeSlots</span>: <span class="val">${ss}</span>          <span class="cmt"># slots seguros a encontrar</span>\n`;
+  if(currentDiff==='insane')yaml+=`  <span class="key">cost</span>: <span class="val">${document.getElementById('fixedCost').value}</span>        <span class="cmt"># coste fijo</span>\n`;
+  yaml+=`  <span class="key">max</span>: <span class="val">${mx}</span>              <span class="cmt"># multiplicador maximo</span>`;
+  document.getElementById('yamlOutput').innerHTML=yaml;
+}
+
+function copyYaml(){
+  const el=document.getElementById('yamlOutput');
+  const txt=el.innerText||el.textContent;
+  navigator.clipboard.writeText(txt.replace('Copiar YAML','').trim());
+}
+
+// Auto-calculate on any input change
+document.querySelectorAll('input').forEach(inp=>{
+  inp.addEventListener('input',calculate);
+});
+
+// Initial calculation
+calculate();
+</script>
+</body>
+</html>
