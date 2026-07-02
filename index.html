@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Tools Selector</title>
+    <style>
+        body {
+            background: #0d0d0d;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 18px;
+            color: #bbb;
+            margin-bottom: 40px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 25px;
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .card {
+            background: #1a1a1a;
+            padding: 25px;
+            border-radius: 12px;
+            border: 2px solid #333;
+            transition: 0.25s;
+            cursor: pointer;
+            text-decoration: none;
+            color: #fff;
+        }
+
+        .card:hover {
+            background: #262626;
+            border-color: #888;
+            transform: translateY(-4px);
+        }
+
+        .card h2 {
+            margin: 0 0 10px;
+            font-size: 24px;
+        }
+
+        .card span {
+            font-size: 14px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Tools Selector</h1>
+    <p>Selecciona una herramienta para abrir</p>
+
+    <div class="container">
+
+        <a class="card" href="trmenu_editor.html">
+            <h2>TRMenu Editor</h2>
+            <span>Editor de menús</span>
+        </a>
+
+        <a class="card" href="deluxetags_editor.html">
+            <h2>DeluxeTags Editor</h2>
+            <span>Editor de tags</span>
+        </a>
+
+        <a class="card" href="mmoitems_editor.html">
+            <h2>MMOItems Editor</h2>
+            <span>Editor de items</span>
+        </a>
+
+        <a class="card" href="mines_calculator.html">
+            <h2>Mines Calculator</h2>
+            <span>Calculadora de minas</span>
+        </a>
+
+    </div>
+
+</body>
+</html>
