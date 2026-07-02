@@ -1,0 +1,2983 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrMenu Visual Editor</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0d1117;color:#c9d1d9;font-family:'Segoe UI',system-ui,sans-serif;height:100vh;overflow:hidden}
+.app{display:flex;height:100vh}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#0d1117}
+::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
+.panel{background:#161b22;border-right:1px solid #21262d;display:flex;flex-direction:column;overflow:visible}
+.panel:last-child{border-right:none;border-left:1px solid #21262d}
+.panel-hdr{padding:12px 14px;border-bottom:1px solid #21262d;font-size:.75rem;text-transform:uppercase;letter-spacing:1.5px;color:#8b949e;font-weight:600;flex-shrink:0}
+.panel-body{flex:1;overflow-y:auto;padding:12px}
+h1{font-size:.95rem;color:#58a6ff;margin-bottom:10px}
+label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.8px;color:#8b949e;margin:10px 0 4px}
+input,select,textarea{width:100%;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:7px 9px;color:#c9d1d9;font-size:.85rem;outline:none;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:#58a6ff}
+textarea{resize:vertical;min-height:60px;font-family:'Cascadia Code','Fira Code',monospace;font-size:.8rem}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.btn{padding:8px 14px;border:none;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;transition:all .15s}
+.btn-primary{background:#238636;color:#fff}.btn-primary:hover{background:#2ea043}
+.btn-secondary{background:#21262d;color:#c9d1d9}.btn-secondary:hover{background:#30363d}
+.btn-danger{background:#da3633;color:#fff}.btn-danger:hover{background:#f85149}
+.btn-sm{padding:5px 10px;font-size:.75rem}
+.btn-block{width:100%;margin-top:8px}
+
+/* Shape Grid */
+.shape-grid-wrap{padding:12px;border-bottom:1px solid #21262d;flex-shrink:0}
+.shape-controls{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.shape-controls label{margin:0;font-size:.75rem;color:#8b949e}
+.shape-controls input{width:50px;text-align:center}
+.shape-grid{display:inline-grid;gap:2px}
+.shape-cell{width:28px;height:28px;border:1px solid #30363d;border-radius:3px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:700;font-size:.75rem;transition:all .1s;user-select:none}
+.shape-cell:hover{border-color:#58a6ff;background:#1a2332}
+.shape-cell.filled{background:#1a2332;border-color:#58a6ff;color:#58a6ff}
+.shape-cell.selected{background:#58a6ff;color:#0d1117;border-color:#58a6ff}
+.shape-cell.multi-selected{background:#1a3a5c;border-color:#58a6ff;color:#58a6ff;box-shadow:inset 0 0 0 1px #58a6ff}
+.shape-cell.empty{background:#0d1117;color:#30363d}
+.shape-cell.dragging-over{background:#1a3a5c;border-color:#58a6ff}
+.char-picker{margin-top:8px;display:flex;gap:4px;flex-wrap:wrap}
+.char-pick{width:28px;height:28px;border:1px solid #30363d;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.75rem;font-weight:600;color:#8b949e;transition:all .1s}
+.char-pick:hover{border-color:#58a6ff;color:#58a6ff}
+.char-pick.active{background:#58a6ff;color:#0d1117;border-color:#58a6ff}
+
+/* Multi-select toolbar */
+.multi-toolbar{display:none;align-items:center;gap:6px;padding:6px 8px;margin-top:6px;background:#1a2332;border:1px solid #58a6ff;border-radius:6px;flex-wrap:wrap}
+.multi-toolbar.show{display:flex}
+.multi-toolbar span{font-size:.7rem;color:#58a6ff;font-weight:600}
+.multi-toolbar input{width:40px;text-align:center;padding:3px 4px;font-size:.75rem}
+.multi-toolbar .btn{padding:3px 8px;font-size:.7rem}
+
+/* Button List */
+.btn-list{flex:1;overflow-y:auto}
+.btn-item{padding:10px 12px;border-bottom:1px solid #21262d;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
+.btn-item:hover{background:#1a2332}
+.btn-item.active{background:#1a2332;border-left:3px solid #58a6ff}
+.btn-item .btn-icon{width:28px;height:28px;background:#21262d;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#58a6ff;flex-shrink:0}
+.btn-item .btn-info{flex:1;min-width:0}
+.btn-item .btn-id{font-size:.8rem;font-weight:600}
+.btn-item .btn-mat{font-size:.7rem;color:#8b949e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Center */
+.center{display:flex;flex-direction:column;overflow:hidden;background:#0d1117;flex:1;min-width:0}
+.toolbar{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid #21262d;flex-shrink:0;align-items:center}
+.toolbar .sep{width:1px;height:20px;background:#30363d}
+.tab-bar{display:flex;border-bottom:1px solid #21262d;flex-shrink:0}
+.tab{padding:10px 18px;font-size:.8rem;color:#8b949e;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.tab:hover{color:#c9d1d9}
+.tab.active{color:#58a6ff;border-bottom-color:#58a6ff}
+.tab-content{flex:1;overflow-y:auto;padding:16px}
+.tab-page{display:none}
+.tab-page.active{display:block}
+
+/* Properties */
+.prop-section{margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #21262d}
+.prop-section:last-child{border-bottom:none}
+.prop-title{font-size:.75rem;text-transform:uppercase;letter-spacing:1px;color:#58a6ff;margin-bottom:10px;font-weight:600}
+.icon-preview{width:100%;padding:16px;background:#0d1117;border:1px solid #30363d;border-radius:8px;text-align:center;margin-bottom:10px;display:flex;flex-direction:column;align-items:center}
+.icon-preview .item-icon{font-size:2rem;margin-bottom:8px;display:flex;justify-content:center;align-items:center}
+.icon-preview .item-icon img{display:block;margin:0 auto}
+.icon-preview .item-name{font-size:.85rem;font-weight:600}
+.icon-preview .item-lore{font-size:.75rem;color:#8b949e;margin-top:6px;white-space:pre-line}
+
+/* Conditional Icons */
+.cond-icon{background:#0d1117;border:1px solid #30363d;border-radius:8px;margin-bottom:8px;overflow:hidden}
+.cond-icon .cond-hdr{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;cursor:pointer;user-select:none;transition:background .15s}
+.cond-icon .cond-hdr:hover{background:#161b22}
+.cond-icon .cond-hdr span{font-size:.75rem;font-weight:600;color:#f0883e;flex:1}
+.cond-icon .cond-hdr .cond-summary{font-size:.7rem;color:#8b949e;margin-left:8px;font-family:'Cascadia Code','Fira Code',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px}
+.cond-icon .cond-hdr .collapse-icon{font-size:.7rem;color:#484f58;transition:transform .2s;margin-right:6px}
+.cond-icon .cond-hdr .collapse-icon.collapsed{transform:rotate(-90deg)}
+.cond-body{padding:0 12px 12px;display:none}
+.cond-body.show{display:block}
+
+/* Advanced Options */
+.adv-options-hdr{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#1c2128;border:1px solid #30363d;border-radius:6px;cursor:pointer;user-select:none;transition:background .15s}
+.adv-options-hdr:hover{background:#21262d}
+.adv-toggle-icon{font-size:.7rem;color:#f0883e}
+
+/* Nested Conditions */
+.nested-condition{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px;margin-bottom:8px;border-left:3px solid #a371f7}
+.nested-condition-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.nested-condition-hdr span{font-size:.65rem;text-transform:uppercase;letter-spacing:1px;color:#a371f7;font-weight:600}
+.nested-condition .nested-actions{margin-top:8px;padding-top:8px;border-top:1px dashed #21262d}
+.nested-condition .nested-deny{margin-top:8px;padding-top:8px;border-top:1px dashed #21262d}
+
+/* Actions */
+.action-row{display:flex;gap:6px;margin-bottom:6px}
+.action-row select{width:100px;flex-shrink:0}
+.action-row input{flex:1}
+.action-row .btn{flex-shrink:0}
+
+/* YAML Preview */
+.yaml-preview{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:14px;font-family:'Cascadia Code','Fira Code',monospace;font-size:.78rem;line-height:1.6;white-space:pre;overflow:auto;color:#7ee787;max-height:calc(100vh - 140px)}
+.yaml-preview .k{color:#ff7b72}
+.yaml-preview .v{color:#a5d6ff}
+.yaml-preview .c{color:#484f58}
+
+/* Item Search */
+.item-search{position:relative}
+.item-dropdown{position:absolute;top:100%;left:0;right:0;background:#161b22;border:1px solid #30363d;border-radius:0 0 6px 6px;max-height:200px;overflow-y:auto;z-index:100;display:none}
+.item-dropdown.show{display:block}
+.item-opt{padding:6px 10px;cursor:pointer;font-size:.8rem;display:flex;align-items:center;gap:6px}
+.item-opt:hover{background:#1a2332}
+.item-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.empty-state{text-align:center;padding:40px 20px;color:#484f58}
+.empty-state .icon{font-size:2.5rem;margin-bottom:10px}
+.empty-state p{font-size:.85rem}
+.drag-handle{width:5px;background:#21262d;cursor:col-resize;flex-shrink:0;transition:background .15s}.drag-handle:hover,.drag-handle.dragging{background:#58a6ff}
+.yaml-section-hdr{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-bottom:1px solid #21262d;flex-shrink:0}
+.yaml-section-body{flex:1;overflow:auto;padding:0;display:none}
+.yaml-section-body.show{display:block}
+
+/* Material Picker Modal */
+.mat-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;display:none;align-items:center;justify-content:center}
+.mat-modal-overlay.show{display:flex}
+.mat-modal{background:#161b22;border:1px solid #30363d;border-radius:12px;width:680px;max-width:90vw;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.mat-modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #21262d;flex-shrink:0}
+.mat-modal-hdr span{font-size:.85rem;font-weight:600;color:#58a6ff}
+.mat-modal-hdr button{background:none;border:none;color:#8b949e;font-size:1.2rem;cursor:pointer;padding:4px 8px;border-radius:4px}
+.mat-modal-hdr button:hover{color:#f85149;background:#21262d}
+.mat-modal-search{padding:10px 18px;border-bottom:1px solid #21262d;flex-shrink:0}
+.mat-modal-search input{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:8px 12px;color:#c9d1d9;font-size:.85rem;width:100%;outline:none}
+.mat-modal-search input:focus{border-color:#58a6ff}
+.mat-modal-body{flex:1;overflow-y:auto;padding:12px 18px}
+.mat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px}
+.mat-grid-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #2d5a3d;border-radius:6px;cursor:pointer;transition:all .12s;font-size:.75rem;color:#c9d1d9;background:#2d5a3d}
+.mat-grid-item:hover{border-color:#58a6ff;background:#3d7a4d}
+.mat-grid-item .mat-dot{width:14px;height:14px;border-radius:3px;flex-shrink:0}
+.mat-grid-item .mat-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mat-modal-footer{padding:10px 18px;border-top:1px solid #21262d;flex-shrink:0;text-align:center;font-size:.75rem;color:#484f58}
+.mat-field-wrap{display:flex;gap:4px;align-items:center}
+.mat-field-wrap input{flex:1}
+.mat-field-wrap .btn{flex-shrink:0;padding:5px 8px;font-size:.75rem;white-space:nowrap}
+
+/* Format Modal */
+.fmt-toolbar{display:none}
+.fmt-popup{position:relative;display:inline-flex;align-items:center}
+.fmt-popup-btn{width:28px;height:28px;border:1px solid #30363d;border-radius:4px;background:linear-gradient(135deg,#ff5555 25%,#55ff55 25%,#55ff55 50%,#5555ff 50%,#5555ff 75%,#ffff55 75%);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000;flex-shrink:0;transition:all .15s}
+.fmt-popup-btn:hover{border-color:#58a6ff;transform:scale(1.08)}
+.fmt-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;display:none;align-items:center;justify-content:center}
+.fmt-modal-overlay.show{display:flex}
+.fmt-modal{background:#161b22;border:1px solid #30363d;border-radius:12px;width:420px;max-width:90vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.fmt-modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #21262d;flex-shrink:0}
+.fmt-modal-hdr span{font-size:.85rem;font-weight:600;color:#58a6ff}
+.fmt-modal-hdr button{background:none;border:none;color:#8b949e;font-size:1.2rem;cursor:pointer;padding:4px 8px;border-radius:4px}
+.fmt-modal-hdr button:hover{color:#f85149;background:#21262d}
+.fmt-modal-body{flex:1;overflow-y:auto;padding:14px 16px}
+.fmt-modal-target{font-size:.7rem;color:#484f58;padding:0 16px 10px;border-bottom:1px solid #21262d;font-style:italic}
+.fmt-editor-wrap{margin-bottom:12px}
+.fmt-editor-label{font-size:.65rem;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+.fmt-editor-textarea{width:100%;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:8px 10px;color:#c9d1d9;font-family:'Cascadia Code','Fira Code',monospace;font-size:.8rem;resize:vertical;min-height:48px;outline:none;box-sizing:border-box}
+.fmt-editor-textarea:focus{border-color:#58a6ff}
+.fmt-editor-preview{background:#1a1a2e;border:1px solid #30363d;border-radius:6px;padding:8px 10px;margin-top:6px;min-height:32px;font-size:.85rem;line-height:1.5;font-family:'Courier New',monospace;text-shadow:1px 1px 0 rgba(0,0,0,.5)}
+.fmt-editor-preview:empty::before{content:'Vista previa...';color:#484f58;font-style:italic}
+.fmt-editor-insert{display:flex;gap:8px;margin-top:10px}
+.fmt-editor-insert .btn{flex:1;padding:8px;font-size:.8rem;font-weight:600}
+.fmt-section-title{font-size:.65rem;color:#484f58;text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid #21262d}
+.fmt-section-title:first-child{margin-top:0}
+.fmt-color-grid{display:flex;flex-wrap:wrap;gap:4px}
+.fmt-color{width:28px;height:28px;border:1px solid #30363d;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#fff;transition:all .1s;flex-shrink:0}
+.fmt-color:hover{border-color:#58a6ff;transform:scale(1.15)}
+.fmt-sep{width:1px;height:18px;background:#30363d;margin:0 3px;flex-shrink:0}
+.fmt-hex-wrap{display:flex;align-items:center;gap:4px;margin-top:4px;flex-shrink:0}
+.fmt-hex-wrap input[type="color"]{width:28px;height:28px;border:1px solid #30363d;border-radius:3px;cursor:pointer;padding:0;background:none}
+.fmt-hex-wrap input[type="color"]::-webkit-color-swatch-wrapper{padding:1px}
+.fmt-hex-wrap input[type="color"]::-webkit-color-swatch{border:none;border-radius:2px}
+.fmt-grad-wrap{display:flex;align-items:center;gap:4px;margin-top:4px;flex-wrap:wrap;flex-shrink:0}
+.fmt-grad-wrap input[type="color"]{width:28px;height:28px;border:1px solid #30363d;border-radius:3px;cursor:pointer;padding:0;background:none}
+.fmt-grad-wrap input[type="color"]::-webkit-color-swatch-wrapper{padding:1px}
+.fmt-grad-wrap input[type="color"]::-webkit-color-swatch{border:none;border-radius:2px}
+.fmt-grad-wrap .btn{padding:3px 6px;font-size:.65rem}
+.fmt-reset{background:#30363d!important;color:#c9d1d9!important;font-size:.6rem!important;width:22px!important;height:22px!important}
+
+/* Emoji Picker Modal */
+.emoji-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;display:none;align-items:center;justify-content:center}
+.emoji-modal-overlay.show{display:flex}
+.emoji-modal{background:#161b22;border:1px solid #30363d;border-radius:12px;width:480px;max-width:90vw;max-height:70vh;display:flex;flex-direction:column;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.emoji-modal-hdr{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #21262d;flex-shrink:0}
+.emoji-modal-hdr span{font-size:.85rem;font-weight:600;color:#58a6ff}
+.emoji-modal-hdr button{background:none;border:none;color:#8b949e;font-size:1.2rem;cursor:pointer;padding:4px 8px;border-radius:4px}
+.emoji-modal-hdr button:hover{color:#f85149;background:#21262d}
+.emoji-modal-search{padding:10px 18px;border-bottom:1px solid #21262d;flex-shrink:0}
+.emoji-modal-search input{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:8px 12px;color:#c9d1d9;font-size:.85rem;width:100%;outline:none}
+.emoji-modal-search input:focus{border-color:#58a6ff}
+.emoji-modal-body{flex:1;overflow-y:auto;padding:12px 18px}
+.emoji-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:4px;padding:4px}
+.emoji-btn{width:36px;height:36px;border:1px solid #30363d;border-radius:4px;background:#161b22;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.2rem;transition:all .1s}
+.emoji-btn:hover{border-color:#58a6ff;background:#1a2332;transform:scale(1.1)}
+.emoji-category{font-size:.7rem;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin:8px 0 4px;font-weight:600}
+.emoji-modal-footer{padding:10px 18px;border-top:1px solid #21262d;flex-shrink:0;text-align:center;font-size:.75rem;color:#484f58}
+.emoji-trigger{width:32px;height:22px;border:1px solid #30363d;border-radius:3px;background:#21262d;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:.9rem;transition:all .15s;flex-shrink:0}
+.emoji-trigger:hover{border-color:#58a6ff;background:#1a2332;transform:scale(1.05)}
+
+/* Small Caps Toggle */
+.sc-toggle{height:22px;padding:0 8px;border:1px solid #30363d;border-radius:3px;background:#30363d;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#c9d1d9;transition:all .15s;flex-shrink:0}
+.sc-toggle:hover{border-color:#58a6ff;color:#58a6ff}
+.sc-toggle.active{background:#1a3a5c;border-color:#58a6ff;color:#58a6ff}
+
+/* Preview Tab */
+.preview-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;padding:10px}
+.preview-title{font-size:.85rem;color:#8b949e;text-align:center}
+.preview-grid{display:inline-grid;gap:3px;background:#0d1117;padding:10px;border-radius:8px;border:1px solid #21262d}
+.preview-cell{width:52px;height:52px;background:#1a1a2e;border:1px solid #30363d;border-radius:4px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.preview-cell img{width:36px;height:36px;image-rendering:pixelated}
+.preview-cell .cell-label{position:absolute;bottom:1px;right:3px;font-size:.55rem;color:#484f58;font-weight:600}
+.preview-cell.empty-cell{background:#0d1117;border-color:#21262d}
+.preview-legend{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.preview-legend-item{display:flex;align-items:center;gap:6px;font-size:.75rem;color:#8b949e}
+.preview-legend-item img{width:24px;height:24px;image-rendering:pixelated}
+.preview-cell.has-item{cursor:pointer;transition:all .15s}
+.preview-cell.has-item:hover{border-color:#58a6ff;box-shadow:0 0 8px rgba(88,166,255,.3);transform:scale(1.05)}
+
+/* Item Detail Modal */
+.item-detail-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;animation:fadeIn .15s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.item-detail-modal{background:#262626;border:3px solid #1a1a1a;outline:2px solid #3d3d3d;border-radius:0;padding:0;min-width:340px;max-width:480px;box-shadow:0 8px 32px rgba(0,0,0,.6);position:relative;font-family:'Courier New',monospace}
+.mc-tooltip-header{background:#1a1a1a;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #3d3d3d}
+.mc-tooltip-header span{font-size:.75rem;color:#8b949e;font-family:system-ui,sans-serif}
+.mc-tooltip-header button{background:none;border:none;color:#8b949e;cursor:pointer;font-size:1.1rem;padding:0 4px;line-height:1}
+.mc-tooltip-header button:hover{color:#ff5555}
+.mc-tooltip-body{padding:14px 16px}
+.mc-tooltip{background:#100010;border:2px solid #250060;outline:1px solid #100010;padding:8px 10px;position:relative}
+.mc-tooltip .mc-item-icon{display:inline-block;width:28px;height:28px;image-rendering:pixelated;vertical-align:middle;margin-right:6px;background:#1a1a2e;border-radius:2px}
+.mc-tooltip .mc-item-name{font-size:.95rem;font-weight:bold;display:inline;vertical-align:middle;text-shadow:1px 1px 0 #1a0a30}
+.mc-tooltip .mc-item-lore{margin-top:6px;font-size:.8rem;line-height:1.5;text-shadow:1px 1px 0 #1a0a30}
+.mc-tooltip .mc-item-lore div{margin:1px 0}
+.mc-conditions{margin-top:14px;font-family:system-ui,sans-serif}
+.mc-conditions-title{font-size:.75rem;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.mc-conditions-title::after{content:'';flex:1;height:1px;background:#30363d}
+.mc-cond-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;margin-bottom:4px;transition:background .15s}
+.mc-cond-row:hover{background:rgba(255,255,255,.04)}
+.mc-cond-row.active{background:rgba(88,166,255,.08)}
+.mc-cond-toggle{position:relative;width:36px;height:20px;background:#30363d;border-radius:10px;cursor:pointer;transition:background .2s;flex-shrink:0;border:none;padding:0}
+.mc-cond-toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:#8b949e;border-radius:50%;transition:all .2s}
+.mc-cond-toggle.on{background:#1a6b30}
+.mc-cond-toggle.on::after{left:18px;background:#55ff55}
+.mc-cond-info{flex:1;min-width:0}
+.mc-cond-label{font-size:.72rem;color:#c9d1d9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-cond-expr{font-size:.62rem;color:#484f58;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Courier New',monospace}
+.mc-cond-pri{font-size:.55rem;color:#484f58;background:#1a1a2e;padding:1px 5px;border-radius:3px;flex-shrink:0}
+.mc-no-conditions{text-align:center;color:#484f58;font-size:.75rem;padding:12px;font-style:italic}
+.mc-actions-bar{margin-top:12px;display:flex;gap:8px;justify-content:flex-end;font-family:system-ui,sans-serif}
+.mc-actions-bar button{padding:5px 14px;border-radius:4px;font-size:.75rem;cursor:pointer;border:1px solid #30363d;background:#21262d;color:#c9d1d9;transition:all .15s}
+.mc-actions-bar button:hover{background:#30363d;border-color:#58a6ff}
+</style>
+</head>
+<body>
+<div class="app">
+<!-- LEFT PANEL: Shape + Buttons -->
+<div class="panel" id="leftPanel" style="width:300px;min-width:200px;max-width:500px;flex-shrink:0">
+<div class="panel-hdr">Shape <span style="float:right"><input type="number" id="shapeRows" value="6" min="1" max="6" onchange="resizeShape()" style="width:42px;padding:2px 4px;font-size:.75rem;text-align:center"> <button class="btn btn-sm btn-secondary" onclick="selectAllFilled()" style="padding:2px 8px" title="Seleccionar todos los slots llenos">Sel.All</button> <button class="btn btn-sm btn-secondary" onclick="clearShape()" style="padding:2px 8px">Limpiar</button></span></div>
+<div style="padding:8px 12px;border-bottom:1px solid #21262d;flex-shrink:0">
+<div id="shapeGrid" class="shape-grid" style="display:inline-grid;gap:2px"></div>
+<div class="char-picker" id="charPicker" style="margin-top:6px"></div>
+<div class="multi-toolbar" id="multiToolbar">
+<span id="multiCount">0 slots</span>
+<input type="text" id="multiAssignChar" maxlength="1" placeholder="-" title="Caracter a asignar">
+<button class="btn btn-sm btn-primary" onclick="assignToSelected()">Asignar</button>
+<button class="btn btn-sm btn-danger" onclick="clearSelected()">Limpiar</button>
+<button class="btn btn-sm btn-secondary" onclick="deselectAll()">Deseleccionar</button>
+</div>
+</div>
+<div class="panel-hdr">Botones <button class="btn btn-sm btn-primary" style="float:right" onclick="autoDetectButtons()">Auto-Detectar</button></div>
+<div class="btn-list" id="btnList">
+<div class="empty-state"><div class="icon">&#9638;</div><p>Configura el shape y auto-detecta los botones</p></div>
+</div>
+</div>
+<div class="drag-handle" id="dragHandle"></div>
+
+<!-- EDITOR -->
+<div class="center">
+<div class="toolbar">
+<h1 style="margin:0;font-size:.85rem">&#9874; MineLatino | TrMenu Editor</h1>
+<div style="flex:1"></div>
+<button class="btn btn-primary" id="yamlToggleBtn" onclick="toggleYaml()">&#128196; YAML</button>
+<button class="btn btn-secondary" onclick="exportYaml()">Descargar .yml</button>
+</div>
+<div class="tab-bar">
+<div class="tab active" data-tab="config" onclick="switchTab('config')">&#9881; Config</div>
+<div class="tab" data-tab="button" onclick="switchTab('button')">&#9638; Boton</div>
+<div class="tab" data-tab="conditions" onclick="switchTab('conditions')">&#9881; Condiciones</div>
+<div class="tab" data-tab="actions" onclick="switchTab('actions')">&#9889; Acciones</div>
+<div class="tab" data-tab="preview" onclick="switchTab('preview');renderPreview()">&#128065; Preview</div>
+</div>
+<div class="tab-content">
+<!-- CONFIG TAB -->
+<div class="tab-page active" id="tab-config">
+<div class="prop-section">
+<div class="prop-title">Menu General</div>
+<label>Titulo del Menu</label>
+<input type="text" id="cfgTitle" value="&8&lMI MENU" oninput="markDirty()">
+<label>Comando para abrir (regex)</label>
+<input type="text" id="cfgCommand" value="(?i) mimenu?" oninput="markDirty()">
+</div>
+<div class="prop-section">
+<div class="prop-title">Options</div>
+<div class="row">
+<div><label>Min Click Delay (ms)</label><input type="number" id="cfgClickDelay" value="200" oninput="markDirty()"></div>
+</div>
+</div>
+<div class="prop-section">
+<div class="prop-title">Events</div>
+<label>On Open (acciones, una por linea)</label>
+<textarea id="cfgOnOpen" rows="3" placeholder="tell: &aBienvenido!" oninput="markDirty()"></textarea>
+<label>On Close (acciones, una por linea)</label>
+<textarea id="cfgOnClose" rows="3" placeholder="" oninput="markDirty()"></textarea>
+</div>
+</div>
+
+<!-- BUTTON TAB -->
+<div class="tab-page" id="tab-button">
+<div id="btnEditorEmpty" class="empty-state"><div class="icon">&#9638;</div><p>Selecciona un boton de la lista</p></div>
+<div id="btnEditor" style="display:none">
+<div class="prop-section">
+<div class="prop-title">Boton: '<span id="btnEditId">?</span>'</div>
+<div class="icon-preview" id="iconPreview">
+<div class="item-icon" id="prevIcon"><img id="prevIconImg" src="" onerror="wikiImgError(this)" style="width:48px;height:48px;image-rendering:pixelated;display:none"><div id="prevIconFallback" style="font-size:2rem">&#9638;</div></div>
+<div class="item-name" id="prevName">Item Name</div>
+<div class="item-lore" id="prevLore"></div>
+</div>
+</div>
+<div class="prop-section">
+<div class="prop-title">Display Principal</div>
+<label>Material (item de Minecraft)</label>
+<div class="mat-field-wrap">
+<input type="text" id="btnMat" value="STONE" oninput="saveButtonFromEditor();updatePreview();toggleHeadTexture()">
+<button class="btn btn-secondary btn-sm" onclick="openMaterialPicker(function(item){document.getElementById('btnMat').value=item;saveButtonFromEditor();updatePreview();toggleHeadTexture()},this.previousElementSibling.value)">&#9638; Buscar</button>
+</div>
+<div id="headTextureWrap" style="display:none">
+<label>Player Head Texture (Base64)</label>
+<textarea id="btnHeadTexture" rows="2" oninput="markDirty()" placeholder="eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6..."></textarea>
+</div>
+<label>Nombre</label>
+<div style="display:flex;gap:6px;align-items:center">
+<input type="text" id="btnName" value="&f&lBOTON" oninput="updatePreview();markDirty()" style="flex:1">
+<div id="fmtPopupAnchor_btnName"></div>
+</div>
+<label>Lore (una linea por fila)</label>
+<div style="display:flex;gap:6px;align-items:flex-start">
+<textarea id="btnLore" rows="5" oninput="updatePreview();markDirty()" placeholder="&7Linea 1&#10;&7Linea 2" style="flex:1"></textarea>
+<div id="fmtPopupAnchor_btnLore"></div>
+</div>
+<div class="row">
+<div><label>Update (ticks, 0=no)</label><input type="number" id="btnUpdate" value="0" min="0" oninput="markDirty()"></div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- CONDITIONS TAB -->
+<div class="tab-page" id="tab-conditions">
+<div id="condEmpty" class="empty-state"><div class="icon">&#9881;</div><p>Selecciona un boton primero</p></div>
+<div id="condEditor" style="display:none">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<div class="prop-title" style="margin:0;border:none;padding:0">Iconos Condicionales</div>
+<button class="btn btn-sm btn-primary" onclick="addCondition()">+ Condicion</button>
+</div>
+<div id="condList"></div>
+</div>
+</div>
+
+<!-- ACTIONS TAB -->
+<div class="tab-page" id="tab-actions">
+<div id="actEmpty" class="empty-state"><div class="icon">&#9889;</div><p>Selecciona un boton primero</p></div>
+<div id="actEditor" style="display:none">
+<div class="prop-section">
+<div class="prop-title">Acciones al Click (all)</div>
+<div id="actionList"></div>
+<button class="btn btn-sm btn-primary btn-block" onclick="addAction()">+ Accion</button>
+</div>
+</div>
+</div>
+
+<!-- PREVIEW TAB -->
+<div class="tab-page" id="tab-preview">
+<div class="preview-wrap">
+<div class="preview-title">Vista previa del menu - Shape con items <span style="font-size:.7rem;color:#484f58">(click en un slot para ver detalle)</span></div>
+<div class="preview-grid" id="previewGrid"></div>
+<div class="preview-legend" id="previewLegend"></div>
+</div>
+</div>
+<!-- Item Detail Modal (injected dynamically) -->
+<div id="itemDetailOverlay" style="display:none"></div>
+</div>
+
+<!-- YAML PANEL (toggle) -->
+<div class="yaml-section-hdr" id="yamlSectionHdr" style="display:none">
+<span style="font-size:.8rem;color:#8b949e">YAML Output</span>
+<button class="btn btn-sm btn-secondary" onclick="copyYaml()">Copiar</button>
+</div>
+<div class="yaml-section-body" id="yamlSectionBody">
+<div class="yaml-preview" id="yamlLive" style="border:none;max-height:none;height:100%;border-radius:0"></div>
+</div>
+</div>
+
+<!-- MATERIAL PICKER MODAL -->
+<div class="mat-modal-overlay" id="matModal">
+<div class="mat-modal">
+<div class="mat-modal-hdr"><span>&#9638; Seleccionar Material</span><button onclick="closeMaterialPicker()">&#10005;</button></div>
+<div class="mat-modal-search"><input type="text" id="matModalSearch" placeholder="Buscar item..." oninput="filterModalItems()" onkeydown="if(event.key==='Enter'){var first=document.querySelector('.mat-grid-item');if(first)first.click();}"></div>
+<div class="mat-modal-body"><div class="mat-grid" id="matModalGrid"></div></div>
+<div class="mat-modal-footer" id="matModalFooter">Haz clic en un item para seleccionarlo</div>
+</div>
+</div>
+
+<!-- FORMAT PICKER MODAL -->
+<div class="fmt-modal-overlay" id="fmtModal" onclick="if(event.target===this)closeFmtModal()">
+<div class="fmt-modal">
+<div class="fmt-modal-hdr"><span>&#9998; Colores y Formato</span><button onclick="closeFmtModal()">&#10005;</button></div>
+<div class="fmt-modal-target" id="fmtModalTarget"></div>
+<div class="fmt-modal-body" id="fmtModalBody"></div>
+</div>
+</div>
+
+<div class="emoji-modal-overlay" id="emojiModal" onclick="if(event.target===this)closeEmojiModal()">
+<div class="emoji-modal">
+<div class="emoji-modal-hdr"><span>&#9786; Simbolos Unicode</span><button onclick="closeEmojiModal()">&#10005;</button></div>
+<div class="emoji-modal-search"><input type="text" id="emojiSearch" placeholder="Buscar simbolo..." oninput="filterEmojis()"></div>
+<div class="emoji-modal-body">
+<div class="emoji-category">Simbolos e Iconos</div>
+<div class="emoji-grid" id="emojiGrid"></div>
+</div>
+<div class="emoji-modal-footer">Click en un simbolo para insertarlo</div>
+</div>
+</div>
+
+<script>
+// ===== DATA =====
+let shape = [];
+let rows = 6;
+let selectedCell = null;
+let selectedChar = '-';
+let buttons = {};
+let activeBtnId = null;
+let dirty = false;
+
+const MC_ITEMS = [
+'DIAMOND','DIAMOND_BLOCK','EMERALD','EMERALD_BLOCK','GOLD_INGOT','GOLD_BLOCK','IRON_INGOT','IRON_BLOCK',
+'NETHERITE_INGOT','NETHERITE_BLOCK','LAPIS_LAZULI','LAPIS_BLOCK','REDSTONE','REDSTONE_BLOCK','COAL','COAL_BLOCK',
+'STONE','COBBLESTONE','GRANITE','DIORITE','ANDESITE','DEEPSLATE','OBSIDIAN','BEDROCK','TNT','SPONGE',
+'GRASS_BLOCK','DIRT','SAND','GRAVEL','CLAY','MUD','ICE','PACKED_ICE','BLUE_ICE',
+'OAK_LOG','BIRCH_LOG','SPRUCE_LOG','DARK_OAK_LOG','ACACIA_LOG','JUNGLE_LOG','CHERRY_LOG','MANGROVE_LOG',
+'OAK_PLANKS','BIRCH_PLANKS','SPRUCE_PLANKS','DARK_OAK_PLANKS','ACACIA_PLANKS','JUNGLE_PLANKS',
+'DIAMOND_SWORD','DIAMOND_PICKAXE','DIAMOND_AXE','DIAMOND_SHOVEL','DIAMOND_HOE',
+'NETHERITE_SWORD','NETHERITE_PICKAXE','BOW','CROSSBOW','TRIDENT','SHIELD','MACE',
+'LEATHER_HELMET','CHAINMAIL_CHESTPLATE','IRON_LEGGINGS','DIAMOND_BOOTS','NETHERITE_HELMET',
+'GOLDEN_APPLE','ENCHANTED_GOLDEN_APPLE','TOTEM_OF_UNDYING','ELYTRA','FIREWORK_ROCKET',
+'ENDER_PEARL','ENDER_EYE','EXPERIENCE_BOTTLE','ENCHANTED_BOOK','NAME_TAG','SADDLE',
+'BOOK','PAPER','COMPASS','CLOCK','MAP','LEAD','SHEARS','FISHING_ROD',
+'APPLE','BREAD','CAKE','COOKIE','GOLDEN_CARROT','STEAK','COOKED_BEEF',
+'POTION','SPLASH_POTION','LINGERING_POTION',
+'BARRIER','COMMAND_BLOCK','STRUCTURE_VOID','JIGSAW','LIGHT','RESPAWN_ANCHOR',
+'OAK_SIGN','BIRCH_SIGN','SPRUCE_SIGN','DARK_OAK_SIGN',
+'BELL','LANTERN','SOUL_LANTERN','CAMPFIRE','SOUL_CAMPFIRE',
+'GRAY_STAINED_GLASS_PANE','WHITE_STAINED_GLASS_PANE','BLACK_STAINED_GLASS_PANE',
+'RED_STAINED_GLASS_PANE','BLUE_STAINED_GLASS_PANE','GREEN_STAINED_GLASS_PANE',
+'YELLOW_STAINED_GLASS_PANE','LIME_STAINED_GLASS_PANE','CYAN_STAINED_GLASS_PANE',
+'PINK_STAINED_GLASS_PANE','PURPLE_STAINED_GLASS_PANE','ORANGE_STAINED_GLASS_PANE',
+'BROWN_STAINED_GLASS_PANE','MAGENTA_STAINED_GLASS_PANE','LIGHT_BLUE_STAINED_GLASS_PANE',
+'LIGHT_GRAY_STAINED_GLASS_PANE',
+'WHITE_CONCRETE','GRAY_CONCRETE','BLACK_CONCRETE','RED_CONCRETE','BLUE_CONCRETE',
+'GREEN_CONCRETE','YELLOW_CONCRETE','LIME_CONCRETE','CYAN_CONCRETE','PINK_CONCRETE',
+'PURPLE_CONCRETE','ORANGE_CONCRETE',
+'SUNFLOWER','LILAC','ROSE_BUSH','PEONY','WITHER_ROSE','LILY_OF_THE_VALLEY',
+'POPPY','BLUE_ORCHID','ALLIUM','AZURE_BLUET','OXEYE_DAISY','CORNFLOWER','DANDELION',
+'PLAYER_HEAD','SKELETON_SKULL','WITHER_SKELETON_SKULL','DRAGON_HEAD','CREEPER_HEAD',
+'HEART_OF_THE_SEA','NAUTILUS_SHELL','Nether_STAR','END_CRYSTAL','CONDUIT','BEACON',
+'GOLD_NUGGET','IRON_NUGGET','RAW_GOLD','RAW_IRON','RAW_COPPER',
+'ARROW','SPECTRAL_ARROW','TIPPED_ARROW','SNOWBALL','EGG',
+'WHITE_WOOL','GRAY_WOOL','BLACK_WOOL','RED_WOOL','BLUE_WOOL','GREEN_WOOL',
+'YELLOW_WOOL','LIME_WOOL','CYAN_WOOL','PURPLE_WOOL','ORANGE_WOOL','PINK_WOOL'
+];
+
+const ITEM_COLORS = {
+'DIAMOND':'#5cf5f5','EMERALD':'#17dd62','GOLD_INGOT':'#ffd700','IRON_INGOT':'#d4d4d4',
+'NETHERITE_INGOT':'#4a4a4a','REDSTONE':'#ff0000','LAPIS_LAZULI':'#345ec3','COAL':'#333',
+'STONE':'#888','GRASS_BLOCK':'#5d8c3e','DIRT':'#8b6b4a','SAND':'#e8dca0',
+'OBSIDIAN':'#1a0a2e','TNT':'#ff4444','BARRIER':'#ff0066','BEDROCK':'#555',
+'DIAMOND_BLOCK':'#5cf5f5','EMERALD_BLOCK':'#17dd62','GOLD_BLOCK':'#ffd700',
+'IRON_BLOCK':'#d4d4d4','NETHERITE_BLOCK':'#4a4a4a','SPONGE':'#e8d44d',
+'DIAMOND_SWORD':'#5cf5f5','BOW':'#8b6b4a','TRIDENT':'#17b8c9','SHIELD':'#888',
+'APPLE':'#ff3333','CAKE':'#f5e0c9','GOLDEN_APPLE':'#ffd700','ENDER_PEARL':'#009999',
+'POTION':'#ff66cc','ENCHANTED_BOOK':'#aa44ff','BOOK':'#8b6b4a',
+'BELL':'#ffd700','LANTERN':'#ffaa00','CAMPFIRE':'#ff6600','BEACON':'#5cf5f5',
+'PLAYER_HEAD':'#ffcc99','END_CRYSTAL':'#ff66ff','CONDUIT':'#5cf5f5',
+'HEART_OF_THE_SEA':'#0055aa','NAUTILUS_SHELL':'#d4a574',
+'GRAY_STAINED_GLASS_PANE':'#666','WHITE_STAINED_GLASS_PANE':'#ddd','BLACK_STAINED_GLASS_PANE':'#222',
+'RED_STAINED_GLASS_PANE':'#cc3333','BLUE_STAINED_GLASS_PANE':'#3333cc','GREEN_STAINED_GLASS_PANE':'#33cc33',
+'LIME_CONCRETE':'#80c71f','RED_CONCRETE':'#b02e26','YELLOW_CONCRETE':'#f9d22b',
+'GRAY_CONCRETE':'#666','OBSIDIAN':'#1a0a2e',
+'WITHER_ROSE':'#333','SUNFLOWER':'#ffd700','POPPY':'#ff3333'
+};
+
+const CHARS = '-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+// ===== SHAPE =====
+let selectedCells = [];
+let isDragging = false;
+let dragStartCell = null;
+
+function initShape(){
+  shape = [];
+  for(let r=0;r<rows;r++){
+    shape.push(Array(9).fill('-'));
+  }
+  renderShape();
+}
+
+function resizeShape(){
+  rows = Math.max(1,Math.min(6,parseInt(document.getElementById('shapeRows').value)||6));
+  document.getElementById('shapeRows').value = rows;
+  while(shape.length<rows) shape.push(Array(9).fill('-'));
+  while(shape.length>rows) shape.pop();
+  renderShape();
+  markDirty();
+}
+
+function clearShape(){
+  for(let r=0;r<shape.length;r++) for(let c=0;c<9;c++) shape[r][c]='-';
+  selectedCells=[];
+  renderShape();
+  updateMultiToolbar();
+  markDirty();
+}
+
+function renderShape(){
+  const grid = document.getElementById('shapeGrid');
+  grid.style.gridTemplateColumns = 'repeat(9, 28px)';
+  const selSet = new Set(selectedCells.map(c=>c[0]+','+c[1]));
+  let html = '';
+  for(let r=0;r<shape.length;r++){
+    for(let c=0;c<9;c++){
+      const ch = shape[r][c];
+      const key = r+','+c;
+      const isMulti = selSet.has(key);
+      const cls = isMulti?'multi-selected':(ch==='-'?'empty':'filled');
+      html += `<div class="shape-cell ${cls}" data-r="${r}" data-c="${c}" onmousedown="shapeMouseDown(event,${r},${c})" onmouseenter="shapeMouseEnter(event,${r},${c})">${ch}</div>`;
+    }
+  }
+  grid.innerHTML = html;
+}
+
+document.addEventListener('mouseup', function(){
+  if(isDragging){
+    isDragging = false;
+    dragStartCell = null;
+    document.querySelectorAll('.shape-cell.dragging-over').forEach(el=>el.classList.remove('dragging-over'));
+  }
+});
+
+function shapeMouseDown(e,r,c){
+  e.preventDefault();
+  if(e.shiftKey){
+    // Shift+Click: toggle cell in selection
+    const idx = selectedCells.findIndex(s=>s[0]===r&&s[1]===c);
+    if(idx>=0) selectedCells.splice(idx,1);
+    else selectedCells.push([r,c]);
+    renderShape();
+    updateMultiToolbar();
+  } else {
+    // Start drag selection
+    isDragging = true;
+    dragStartCell = [r,c];
+    selectedCells = [[r,c]];
+    renderShape();
+    updateMultiToolbar();
+  }
+}
+
+function shapeMouseEnter(e,r,c){
+  if(!isDragging || !dragStartCell) return;
+  // Select all cells in rectangle from dragStartCell to current cell
+  const r1 = Math.min(dragStartCell[0], r);
+  const r2 = Math.max(dragStartCell[0], r);
+  const c1 = Math.min(dragStartCell[1], c);
+  const c2 = Math.max(dragStartCell[1], c);
+  selectedCells = [];
+  for(let rr=r1;rr<=r2;rr++){
+    for(let cc=c1;cc<=c2;cc++){
+      selectedCells.push([rr,cc]);
+    }
+  }
+  renderShape();
+  updateMultiToolbar();
+}
+
+function selectCell(r,c){
+  selectedCells = [[r,c]];
+  renderShape();
+  updateMultiToolbar();
+  switchTab('config');
+}
+
+function updateMultiToolbar(){
+  const toolbar = document.getElementById('multiToolbar');
+  const count = document.getElementById('multiCount');
+  if(selectedCells.length > 1){
+    toolbar.classList.add('show');
+    count.textContent = selectedCells.length + ' slots seleccionados';
+  } else {
+    toolbar.classList.remove('show');
+  }
+}
+
+function assignToSelected(){
+  const ch = document.getElementById('multiAssignChar').value;
+  if(!ch || selectedCells.length===0) return;
+  selectedCells.forEach(([r,c])=>{
+    shape[r][c] = ch;
+  });
+  renderShape();
+  markDirty();
+}
+
+function clearSelected(){
+  selectedCells.forEach(([r,c])=>{
+    shape[r][c] = '-';
+  });
+  selectedCells = [];
+  renderShape();
+  updateMultiToolbar();
+  markDirty();
+}
+
+function deselectAll(){
+  selectedCells = [];
+  renderShape();
+  updateMultiToolbar();
+}
+
+function selectAllFilled(){
+  selectedCells = [];
+  for(let r=0;r<shape.length;r++){
+    for(let c=0;c<9;c++){
+      if(shape[r][c] !== '-') selectedCells.push([r,c]);
+    }
+  }
+  renderShape();
+  updateMultiToolbar();
+}
+
+function buildCharPicker(){
+  const picker = document.getElementById('charPicker');
+  let html = '';
+  CHARS.forEach(ch=>{
+    const act = ch===selectedChar?'active':'';
+    html += `<div class="char-pick ${act}" onclick="pickChar('${ch}')">${ch}</div>`;
+  });
+  picker.innerHTML = html;
+}
+
+function pickChar(ch){
+  selectedChar = ch;
+  buildCharPicker();
+  if(selectedCells.length > 0){
+    selectedCells.forEach(([r,c])=>{
+      shape[r][c] = ch;
+    });
+  } else if(selectedCells.length === 1){
+    shape[selectedCells[0][0]][selectedCells[0][1]] = ch;
+  }
+  renderShape();
+  markDirty();
+}
+
+// ===== BUTTONS =====
+function autoDetectButtons(){
+  const found = new Set();
+  for(let r=0;r<shape.length;r++) for(let c=0;c<9;c++){
+    const ch=shape[r][c];
+    if(ch!=='-') found.add(ch);
+  }
+  found.forEach(ch=>{
+    if(!buttons[ch]){
+      buttons[ch] = {mat:'STONE',name:'&f&lBOTON',lore:'',update:0,icons:[],actions:[]};
+    }
+  });
+  // Remove buttons no longer in shape
+  Object.keys(buttons).forEach(id=>{
+    if(!found.has(id)) delete buttons[id];
+  });
+  renderBtnList();
+  markDirty();
+}
+
+function renderBtnList(){
+  const list = document.getElementById('btnList');
+  const ids = Object.keys(buttons).sort();
+  if(ids.length===0){
+    list.innerHTML='<div class="empty-state"><div class="icon">&#9638;</div><p>No hay botones</p></div>';
+    return;
+  }
+  let html='';
+  ids.forEach(id=>{
+    const b=buttons[id];
+    const act=id===activeBtnId?'active':'';
+    const color=ITEM_COLORS[b.mat]||'#888';
+    html+=`<div class="btn-item ${act}" onclick="selectButton('${id}')">
+      <div class="btn-icon" style="color:${color}">${id}</div>
+      <div class="btn-info"><div class="btn-id">'${id}'</div><div class="btn-mat">${b.mat}</div></div>
+    </div>`;
+  });
+  list.innerHTML=html;
+}
+
+function selectButton(id){
+  activeBtnId = id;
+  renderBtnList();
+  loadButtonEditor();
+  switchTab('button');
+}
+
+function loadButtonEditor(){
+  if(!activeBtnId || !buttons[activeBtnId]){
+    document.getElementById('btnEditorEmpty').style.display='block';
+    document.getElementById('btnEditor').style.display='none';
+    document.getElementById('condEmpty').style.display='block';
+    document.getElementById('condEditor').style.display='none';
+    document.getElementById('actEmpty').style.display='block';
+    document.getElementById('actEditor').style.display='none';
+    return;
+  }
+  const b = buttons[activeBtnId];
+  document.getElementById('btnEditorEmpty').style.display='none';
+  document.getElementById('btnEditor').style.display='block';
+  document.getElementById('condEmpty').style.display='none';
+  document.getElementById('condEditor').style.display='block';
+  document.getElementById('actEmpty').style.display='none';
+  document.getElementById('actEditor').style.display='block';
+  document.getElementById('btnEditId').textContent = activeBtnId;
+  document.getElementById('btnMat').value = b.mat;
+  document.getElementById('btnName').value = b.name;
+  document.getElementById('btnLore').value = b.lore;
+  document.getElementById('btnUpdate').value = b.update;
+  const headTexEl = document.getElementById('btnHeadTexture');
+  if(headTexEl) headTexEl.value = b.headTexture || '';
+  toggleHeadTexture();
+  updatePreview();
+  renderConditions();
+  renderActions();
+}
+
+function saveButtonFromEditor(){
+  if(!activeBtnId || !buttons[activeBtnId]) return;
+  const b = buttons[activeBtnId];
+  b.mat = document.getElementById('btnMat').value||'STONE';
+  b.name = document.getElementById('btnName').value||'&f&lBOTON';
+  b.lore = document.getElementById('btnLore').value;
+  b.update = parseInt(document.getElementById('btnUpdate').value)||0;
+  const headTex = document.getElementById('btnHeadTexture');
+  b.headTexture = (headTex && b.mat.toUpperCase()==='PLAYER_HEAD') ? headTex.value : '';
+  renderBtnList();
+}
+
+function updatePreview(){
+  if(!activeBtnId) return;
+  saveButtonFromEditor();
+  const b = buttons[activeBtnId];
+  const color = ITEM_COLORS[b.mat]||'#888';
+  const wikiUrl = getWikiIconUrl(b.mat);
+  const img = document.getElementById('prevIconImg');
+  const fallback = document.getElementById('prevIconFallback');
+  if(img && fallback){
+    img.src = wikiUrl;
+    img.style.display = 'block';
+    fallback.style.display = 'none';
+  }
+  document.getElementById('prevName').innerHTML = renderColoredText(b.name);
+  document.getElementById('prevLore').innerHTML = b.lore ? b.lore.split('\n').map(l=>renderColoredText(l)).join('<br>') : '';
+}
+
+function stripColors(s){return s.replace(/&[0-9a-fk-or]/gi,'').replace(/&#([0-9a-fA-F]{6})/g,'').replace(/<[^>]+>/g,'')}
+
+function renderColoredText(s){
+  if(!s) return '';
+  const colorMap = {'0':'#000000','1':'#0000AA','2':'#00AA00','3':'#00AAAA','4':'#AA0000','5':'#AA00AA','6':'#FFAA00','7':'#AAAAAA','8':'#555555','9':'#5555FF','a':'#55FF55','b':'#55FFFF','c':'#FF5555','d':'#FF55FF','e':'#FFFF55','f':'#FFFFFF'};
+  const formatMap = {'l':'font-weight:bold','o':'font-style:italic','n':'text-decoration:underline','m':'text-decoration:line-through'};
+  // Use unique markers that won't appear in normal text
+  const HEX_OPEN = '\u0001HX\u0002';
+  const HEX_CLOSE = '\u0003';
+  const GRAD_OPEN = '\u0001GD\u0002';
+  const GRAD_CLOSE = '\u0001EG\u0002';
+  // Replace hex colors with markers
+  let processed = s.replace(/&#([0-9a-fA-F]{6})/g, HEX_OPEN + '#$1' + HEX_CLOSE);
+  // Replace gradient tags with markers
+  processed = processed.replace(/<gradient:#[0-9a-fA-F]{6}:#[0-9a-fA-F]{6}>/g, function(m){
+    const colors = m.match(/#[0-9a-fA-F]{6}/g);
+    return GRAD_OPEN + colors[0] + ':' + colors[1] + GRAD_CLOSE;
+  });
+  processed = processed.replace(/<\/gradient>/g, GRAD_CLOSE);
+  // Process & codes and build HTML
+  let html = '';
+  let currentStyle = '';
+  let i = 0;
+  while(i < processed.length){
+    // Check for hex marker
+    if(processed.substr(i, HEX_OPEN.length) === HEX_OPEN){
+      const end = processed.indexOf(HEX_CLOSE, i + HEX_OPEN.length);
+      if(end > 0){
+        const hexCode = processed.substring(i + HEX_OPEN.length, end);
+        html += '</span><span style="' + currentStyle + 'color:' + hexCode + '">';
+        i = end + HEX_CLOSE.length; continue;
+      }
+    }
+    // Check for gradient open marker
+    if(processed.substr(i, GRAD_OPEN.length) === GRAD_OPEN){
+      const end = processed.indexOf(GRAD_CLOSE, i + GRAD_OPEN.length);
+      if(end > 0){
+        const gradColors = processed.substring(i + GRAD_OPEN.length, end);
+        html += '</span><span style="' + currentStyle + 'background:linear-gradient(90deg,' + gradColors.replace(':',',') + ');-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">';
+        i = end + GRAD_CLOSE.length; continue;
+      }
+    }
+    // Check for gradient close marker
+    if(processed.substr(i, GRAD_CLOSE.length) === GRAD_CLOSE){
+      html += '</span><span style="' + currentStyle + '">';
+      i += GRAD_CLOSE.length; continue;
+    }
+    // Check for & codes
+    if(processed[i] === '&' && i+1 < processed.length){
+      const code = processed[i+1].toLowerCase();
+      if(colorMap[code]){
+        currentStyle = currentStyle.replace(/color:[^;]+;?/g, '');
+        html += '</span><span style="color:' + colorMap[code] + ';' + currentStyle + '">';
+        i += 2; continue;
+      }
+      if(formatMap[code]){
+        currentStyle += formatMap[code] + ';';
+        html += '</span><span style="' + currentStyle + '">';
+        i += 2; continue;
+      }
+      if(code === 'r'){
+        currentStyle = '';
+        html += '</span><span>';
+        i += 2; continue;
+      }
+    }
+    const ch = processed[i];
+    html += ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch === '&' ? '&amp;' : ch;
+    i++;
+  }
+  return html;
+}
+
+// ===== FORMAT TOOLBAR =====
+const MC_COLORS = [
+  {code:'0',hex:'#000000'},{code:'1',hex:'#0000AA'},{code:'2',hex:'#00AA00'},{code:'3',hex:'#00AAAA'},
+  {code:'4',hex:'#AA0000'},{code:'5',hex:'#AA00AA'},{code:'6',hex:'#FFAA00'},{code:'7',hex:'#AAAAAA'},
+  {code:'8',hex:'#555555'},{code:'9',hex:'#5555FF'},{code:'a',hex:'#55FF55'},{code:'b',hex:'#55FFFF'},
+  {code:'c',hex:'#FF5555'},{code:'d',hex:'#FF55FF'},{code:'e',hex:'#FFFF55'},{code:'f',hex:'#FFFFFF'}
+];
+const MC_FORMATS = [
+  {code:'k',label:'K',title:'Obfuscated'},{code:'l',label:'N',title:'Negrita (Bold)'},
+  {code:'m',label:'S',title:'Tachado (Strikethrough)'},{code:'n',label:'S',title:'Subrayado (Underline)'},
+  {code:'o',label:'I',title:'Cursiva (Italic)'}
+];
+
+// ===== EMOJI / UNICODE SYMBOLS =====
+const MC_UNICODE = [
+  '➥','➡','⬅','⬆','⬇','↗','↘','↙','↖','↔','↕','▶','◀','▲','▼',
+  '★','☆','♥','♦','♣','♠','♪','♫','☀','☁','☂','☃','♩','♬','✎','✉','✦','✧','❄','❅','❆','⚔','⚡','❤','✖','✔','❌','✗','✓',
+  '●','○','■','□','▪','▫','▬','▭','◆','◇','◈','◉','◊','◐','◑','◒','◓',
+  '∞','±','×','÷','√','∑','∏','∫','∂','∇','∆','∅','∈','∉','∋','∌','∧','∨','¬','⊕','⊗',
+  '€','$','¢','£','¥','₿','ƒ','₩','₪','₫','₭','₮','₯','₰','₱','₲','₳','₴','₵','₸','₹','₺','₻','₼','₽',
+  '§','¶','†','‡','°','•','‣','⁂','⁑','⁕','✱','✲','✳','✴','✵','✶','✷','✸','✹','✺','✻','✼','✽','✾','✿','❀','❁','❂','❃','❇','❈','❉','❊','❋'
+];
+
+function buildFmtPopupHtml(inputId, withSC){
+  let html = '<div class="fmt-popup">';
+  html += `<button class="fmt-popup-btn" onclick="openFmtModal('${inputId}',${withSC})" title="Colores y formato">A</button>`;
+  html += '</div>';
+  return html;
+}
+
+let _fmtModalInputId = null;
+let _fmtModalSelStart = 0;
+let _fmtModalSelEnd = 0;
+
+function openFmtModal(inputId, withSC){
+  _fmtModalInputId = inputId;
+  const input = document.getElementById(inputId);
+  if(input){
+    _fmtModalSelStart = input.selectionStart || 0;
+    _fmtModalSelEnd = input.selectionEnd || 0;
+  }
+  const modal = document.getElementById('fmtModal');
+  const body = document.getElementById('fmtModalBody');
+  const target = document.getElementById('fmtModalTarget');
+  // Get selected text from original field to pre-fill editor
+  const selectedText = input ? input.value.substring(_fmtModalSelStart, _fmtModalSelEnd) : '';
+  target.textContent = 'Campo: ' + (input ? (input.previousElementSibling ? input.previousElementSibling.textContent || inputId : inputId) : inputId);
+  let html = '';
+  // Text editor
+  html += '<div class="fmt-editor-wrap">';
+  html += '<div class="fmt-editor-label"><span>Editor de texto</span><span style="font-size:.6rem;color:#484f58;text-transform:none;letter-spacing:0">Escribe y aplica formato</span></div>';
+  html += `<textarea class="fmt-editor-textarea" id="fmtEditorText" rows="2" placeholder="Escribe aqu\u00ed..." oninput="updateFmtPreview()">${escHtml(selectedText)}</textarea>`;
+  html += '<div class="fmt-editor-preview" id="fmtEditorPreview"></div>';
+  html += '</div>';
+  // Colors section
+  html += '<div class="fmt-section-title">Colores</div>';
+  html += '<div class="fmt-color-grid">';
+  MC_COLORS.forEach(c=>{
+    const tc = ['e','f','7','8','9','a','b'].includes(c.code) ? '#000' : '#fff';
+    html += `<div class="fmt-color" style="background:${c.hex};color:${tc}" title="&${c.code}" onclick="fmtEditorInsert('&${c.code}')">${c.code.toUpperCase()}</div>`;
+  });
+  html += '</div>';
+  // Formats section
+  html += '<div class="fmt-section-title">Formato</div>';
+  html += '<div class="fmt-color-grid">';
+  MC_FORMATS.forEach(f=>{
+    html += `<div class="fmt-color fmt-reset" style="background:#30363d" title="${f.title} (&${f.code})" onclick="fmtEditorInsert('&${f.code}')">${f.label}</div>`;
+  });
+  html += `<div class="fmt-color fmt-reset" style="background:#30363d" title="Reset (&r)" onclick="fmtEditorInsert('&r')">R</div>`;
+  html += '</div>';
+  // Hex section
+  html += '<div class="fmt-section-title">Hex</div>';
+  html += '<div class="fmt-hex-wrap"><input type="color" id="fmtHexPicker" value="#ff5555"><button class="btn btn-secondary btn-sm" style="padding:4px 10px;font-size:.7rem" onclick="fmtEditorInsertHex()">Insertar Hex</button></div>';
+  // Gradient section
+  html += '<div class="fmt-section-title">Gradiente</div>';
+  html += '<div class="fmt-grad-wrap"><input type="color" id="fmtGradStart" value="#8CE9FF" title="Inicio"><span style="color:#484f58;font-size:.75rem">\u2192</span><input type="color" id="fmtGradEnd" value="#9CFF8C" title="Fin"><button class="btn btn-secondary btn-sm" style="padding:4px 10px;font-size:.7rem" onclick="fmtEditorInsertGradient()">Aplicar Gradiente</button></div>';
+  // Emoji section
+  html += '<div class="fmt-section-title">Simbolos</div>';
+  html += '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">';
+  html += '<button class="btn btn-secondary btn-sm" style="padding:6px 12px;font-size:.75rem" onclick="openEmojiModalFromFmt()">&#9786; Insertar Simbolo</button>';
+  html += '<span style="font-size:.65rem;color:#484f58">Selecciona un simbolo unicode</span>';
+  html += '</div>';
+  // Small Caps
+  if(withSC){
+    html += '<div class="fmt-sep" style="width:100%;height:1px;background:#21262d;margin:12px 0"></div>';
+    html += '<button class="sc-toggle" id="fmtSCToggle" onclick="toggleFmtSC()" title="Small Caps" style="width:100%;justify-content:center;padding:8px 12px;font-size:.75rem">SC Small Caps</button>';
+  }
+  // Insert/Cancel buttons
+  html += '<div class="fmt-editor-insert">';
+  html += '<button class="btn btn-secondary" onclick="closeFmtModal()">Cancelar</button>';
+  html += '<button class="btn btn-primary" onclick="commitFmtEditor()">Insertar</button>';
+  html += '</div>';
+  body.innerHTML = html;
+  modal.classList.add('show');
+  // Focus editor and update preview
+  const editor = document.getElementById('fmtEditorText');
+  if(editor){
+    editor.focus();
+    editor.setSelectionRange(editor.value.length, editor.value.length);
+    updateFmtPreview();
+  }
+}
+
+function updateFmtPreview(){
+  const editor = document.getElementById('fmtEditorText');
+  const preview = document.getElementById('fmtEditorPreview');
+  if(!editor || !preview) return;
+  const text = editor.value;
+  if(!text){
+    preview.innerHTML = '';
+    preview.style.display = 'none';
+  } else {
+    preview.innerHTML = renderColoredText(text);
+    preview.style.display = 'block';
+  }
+}
+
+function fmtEditorInsert(code){
+  const editor = document.getElementById('fmtEditorText');
+  if(!editor) return;
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const val = editor.value;
+  editor.value = val.substring(0, start) + code + val.substring(end);
+  const newPos = start + code.length;
+  editor.focus();
+  editor.setSelectionRange(newPos, newPos);
+  updateFmtPreview();
+}
+
+function fmtEditorInsertHex(){
+  const picker = document.getElementById('fmtHexPicker');
+  if(!picker) return;
+  fmtEditorInsert('&#' + picker.value.replace('#', ''));
+}
+
+function fmtEditorInsertGradient(){
+  const editor = document.getElementById('fmtEditorText');
+  if(!editor) return;
+  const startColor = document.getElementById('fmtGradStart').value.replace('#', '');
+  const endColor = document.getElementById('fmtGradEnd').value.replace('#', '');
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const val = editor.value;
+  let selectedText = val.substring(start, end) || 'texto';
+  // If SC toggle is active, convert text to small caps
+  const scBtn = document.getElementById('fmtSCToggle');
+  if(scBtn && scBtn.classList.contains('active')){
+    selectedText = toSmallCaps(selectedText);
+  }
+  const gradient = '<gradient:#' + startColor + ':#' + endColor + '>' + selectedText + '</gradient>';
+  editor.value = val.substring(0, start) + gradient + val.substring(end);
+  const newPos = start + gradient.length;
+  editor.focus();
+  editor.setSelectionRange(start, newPos);
+  updateFmtPreview();
+}
+
+function toggleFmtSC(){
+  const btn = document.getElementById('fmtSCToggle');
+  const editor = document.getElementById('fmtEditorText');
+  if(!btn || !editor) return;
+  const isActive = btn.classList.toggle('active');
+  btn.title = isActive ? 'Small Caps: ON' : 'Small Caps: OFF';
+  if(isActive){
+    editor.value = toSmallCaps(editor.value);
+  }
+  updateFmtPreview();
+}
+
+function commitFmtEditor(){
+  const editor = document.getElementById('fmtEditorText');
+  const input = document.getElementById(_fmtModalInputId);
+  if(!editor || !input) { closeFmtModal(); return; }
+  const text = editor.value;
+  if(text){
+    const val = input.value;
+    input.value = val.substring(0, _fmtModalSelStart) + text + val.substring(_fmtModalSelEnd);
+    const newPos = _fmtModalSelStart + text.length;
+    _fmtModalSelStart = newPos;
+    _fmtModalSelEnd = newPos;
+    input.focus();
+    input.setSelectionRange(newPos, newPos);
+    input.dispatchEvent(new Event('input'));
+  }
+  closeFmtModal();
+}
+
+function closeFmtModal(){
+  document.getElementById('fmtModal').classList.remove('show');
+  _fmtModalInputId = null;
+}
+
+// Close format modal on Escape
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape' && document.getElementById('fmtModal').classList.contains('show')) closeFmtModal();
+});
+
+function buildFormatToolbar(toolbarId, inputId){
+  const toolbar = document.getElementById(toolbarId);
+  if(!toolbar) return;
+  let html = '';
+  // Color buttons
+  MC_COLORS.forEach(c=>{
+    const textColor = parseInt(c.code,16) > 10 || c.code === 'e' || c.code === 'f' || c.code === '7' || c.code === '8' || c.code === '9' || c.code === 'a' || c.code === 'b' ? '#000' : '#fff';
+    html += `<div class="fmt-color" style="background:${c.hex};color:${textColor}" title="&${c.code}" onclick="insertFormat('${inputId}','&${c.code}')">${c.code.toUpperCase()}</div>`;
+  });
+  html += '<div class="fmt-sep"></div>';
+  // Format buttons
+  MC_FORMATS.forEach(f=>{
+    html += `<div class="fmt-color fmt-reset" title="${f.title}" onclick="insertFormat('${inputId}','&${f.code}')">${f.label}</div>`;
+  });
+  html += '<div class="fmt-color fmt-reset" title="Reset (&r)" onclick="insertFormat(\''+inputId+'\',\'&r\')">R</div>';
+  html += '<div class="fmt-sep"></div>';
+  // Hex color picker
+  html += `<div class="fmt-hex-wrap"><input type="color" id="hexPicker_${inputId}" value="#ff5555" title="Color Hex"><button class="btn btn-secondary btn-sm" style="padding:2px 5px;font-size:.6rem" onclick="insertHexColor('${inputId}')">Hex</button></div>`;
+  html += '<div class="fmt-sep"></div>';
+  // Gradient builder
+  html += `<div class="fmt-grad-wrap"><input type="color" id="gradStart_${inputId}" value="#8CE9FF" title="Color inicio"><input type="color" id="gradEnd_${inputId}" value="#9CFF8C" title="Color fin"><button class="btn btn-secondary btn-sm" style="padding:2px 5px;font-size:.6rem" onclick="insertGradient('${inputId}')">Grad</button></div>`;
+  toolbar.innerHTML = html;
+}
+
+function insertFormat(inputId, code){
+  const input = document.getElementById(inputId);
+  if(!input) return;
+  let start, end;
+  if(_fmtModalInputId === inputId && document.getElementById('fmtModal').classList.contains('show')){
+    start = _fmtModalSelStart;
+    end = _fmtModalSelEnd;
+  } else {
+    start = input.selectionStart;
+    end = input.selectionEnd;
+  }
+  const val = input.value;
+  input.value = val.substring(0, start) + code + val.substring(end);
+  const newPos = start + code.length;
+  _fmtModalSelStart = newPos;
+  _fmtModalSelEnd = newPos;
+  input.focus();
+  input.setSelectionRange(newPos, newPos);
+  input.dispatchEvent(new Event('input'));
+}
+
+function insertHexColor(inputId){
+  const picker = document.getElementById('hexPicker_' + inputId);
+  if(!picker) return;
+  const hex = picker.value.replace('#', '');
+  insertFormat(inputId, '&#' + hex);
+}
+
+function insertGradient(inputId){
+  const input = document.getElementById(inputId);
+  if(!input) return;
+  const startColor = document.getElementById('gradStart_' + inputId).value.replace('#', '');
+  const endColor = document.getElementById('gradEnd_' + inputId).value.replace('#', '');
+  let start, end;
+  if(_fmtModalInputId === inputId && document.getElementById('fmtModal').classList.contains('show')){
+    start = _fmtModalSelStart;
+    end = _fmtModalSelEnd;
+  } else {
+    start = input.selectionStart;
+    end = input.selectionEnd;
+  }
+  const val = input.value;
+  let selectedText = val.substring(start, end) || 'texto';
+  // If SC toggle is active, convert text to small caps
+  const scBtn = document.getElementById('scToggle_' + inputId);
+  if(scBtn && scBtn.classList.contains('active')){
+    selectedText = toSmallCaps(selectedText);
+  }
+  const gradient = '<gradient:#' + startColor + ':#' + endColor + '>' + selectedText + '</gradient>';
+  input.value = val.substring(0, start) + gradient + val.substring(end);
+  const newPos = start + gradient.length;
+  _fmtModalSelStart = newPos;
+  _fmtModalSelEnd = newPos;
+  input.focus();
+  input.setSelectionRange(newPos, newPos);
+  input.dispatchEvent(new Event('input'));
+}
+
+// ===== EMOJI PICKER =====
+let _emojiTargetInputId = null;
+
+function buildEmojiPicker(){
+  const grid = document.getElementById('emojiGrid');
+  if(!grid) return;
+  let html = '';
+  MC_UNICODE.forEach(emoji=>{
+    html += `<button class="emoji-btn" data-symbol="${emoji}" onclick="insertEmoji('${emoji}')" title="${emoji}">${emoji}</button>`;
+  });
+  grid.innerHTML = html;
+}
+
+function openEmojiModal(inputId){
+  _emojiTargetInputId = inputId;
+  const modal = document.getElementById('emojiModal');
+  modal.classList.add('show');
+  buildEmojiPicker();
+  setTimeout(()=>document.getElementById('emojiSearch').focus(), 50);
+}
+
+function openEmojiModalFromFmt(){
+  // Open emoji modal to insert into format editor textarea
+  _emojiTargetInputId = '__fmtEditor__';
+  const modal = document.getElementById('emojiModal');
+  modal.classList.add('show');
+  buildEmojiPicker();
+  setTimeout(()=>document.getElementById('emojiSearch').focus(), 50);
+}
+
+function closeEmojiModal(){
+  document.getElementById('emojiModal').classList.remove('show');
+  document.getElementById('emojiSearch').value = '';
+  filterEmojis();
+  _emojiTargetInputId = null;
+}
+
+function filterEmojis(){
+  const search = document.getElementById('emojiSearch').value.toLowerCase();
+  const buttons = document.querySelectorAll('.emoji-btn');
+  buttons.forEach(btn=>{
+    const symbol = btn.getAttribute('data-symbol');
+    btn.style.display = !search || symbol.includes(search) ? '' : 'none';
+  });
+}
+
+function insertEmoji(emoji){
+  // Special case: insert into format editor textarea
+  if(_emojiTargetInputId === '__fmtEditor__'){
+    const editor = document.getElementById('fmtEditorText');
+    if(!editor) return;
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    const val = editor.value;
+    editor.value = val.substring(0, start) + emoji + val.substring(end);
+    const newPos = start + emoji.length;
+    editor.focus();
+    editor.setSelectionRange(newPos, newPos);
+    updateFmtPreview();
+    return;
+  }
+  // Normal case: insert into original input
+  if(!_emojiTargetInputId) return;
+  const input = document.getElementById(_emojiTargetInputId);
+  if(!input) return;
+  let start, end;
+  if(_fmtModalInputId === _emojiTargetInputId && document.getElementById('fmtModal').classList.contains('show')){
+    start = _fmtModalSelStart;
+    end = _fmtModalSelEnd;
+  } else {
+    start = input.selectionStart;
+    end = input.selectionEnd;
+  }
+  const val = input.value;
+  input.value = val.substring(0, start) + emoji + val.substring(end);
+  const newPos = start + emoji.length;
+  _fmtModalSelStart = newPos;
+  _fmtModalSelEnd = newPos;
+  input.focus();
+  input.setSelectionRange(newPos, newPos);
+  input.dispatchEvent(new Event('input'));
+}
+
+// Close emoji modal on Escape
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape' && document.getElementById('emojiModal').classList.contains('show')) closeEmojiModal();
+});
+
+// ===== SMALL CAPS =====
+const SC_MAP = {
+  'a':'ᴀ','b':'ʙ','c':'ᴄ','d':'ᴅ','e':'ᴇ','f':'ꜰ','g':'ɢ','h':'ʜ',
+  'i':'ɪ','j':'ᴊ','k':'ᴋ','l':'ʟ','m':'ᴍ','n':'ɴ','o':'ᴏ','p':'ᴘ',
+  'q':'ǫ','r':'ʀ','s':'ꜱ','t':'ᴛ','u':'ᴜ','v':'ᴠ','w':'ᴡ','x':'x',
+  'y':'ʏ','z':'ᴢ'
+};
+
+function toggleSmallCaps(inputId, btnId){
+  const btn = document.getElementById(btnId);
+  const input = document.getElementById(inputId);
+  if(!btn || !input) return;
+  const isActive = btn.classList.toggle('active');
+  btn.title = isActive ? 'Small Caps: ON (click to disable)' : 'Small Caps: OFF (click to enable)';
+  if(isActive){
+    input.value = toSmallCaps(input.value);
+  }
+  input.dispatchEvent(new Event('input'));
+}
+
+function toSmallCaps(text){
+  let result = '';
+  let i = 0;
+  while(i < text.length){
+    if(text[i] === '&' && i+1 < text.length && /[0-9a-fk-or]/i.test(text[i+1])){
+      result += text[i] + text[i+1]; i += 2; continue;
+    }
+    if(text[i] === '&' && text[i+1] === '#' && i+8 < text.length){
+      result += text.substring(i, i+8); i += 8; continue;
+    }
+    if(text.substring(i, i+10) === '<gradient:'){
+      const end = text.indexOf('</gradient>', i);
+      if(end > 0){
+        const tagEnd = text.indexOf('>', i) + 1;
+        const openTag = text.substring(i, tagEnd);
+        const innerText = text.substring(tagEnd, end);
+        const closeTag = '</gradient>';
+        result += openTag + toSmallCaps(innerText) + closeTag;
+        i = end + closeTag.length; continue;
+      }
+    }
+    const lower = text[i].toLowerCase();
+    if(SC_MAP[lower]){ result += SC_MAP[lower]; }
+    else { result += text[i]; }
+    i++;
+  }
+  return result;
+}
+
+// ===== PLAYER HEAD TEXTURE =====
+function toggleHeadTexture(){
+  const mat = document.getElementById('btnMat').value.toUpperCase().trim();
+  const wrap = document.getElementById('headTextureWrap');
+  if(wrap) wrap.style.display = mat === 'PLAYER_HEAD' ? 'block' : 'none';
+}
+
+// ===== ITEM SEARCH =====
+function filterItems(input){
+  const dd = document.getElementById('itemDropdown');
+  const val = input.value.toUpperCase();
+  const matches = MC_ITEMS.filter(i=>i.includes(val)).slice(0,30);
+  if(matches.length===0){dd.classList.remove('show');return;}
+  let html='';
+  matches.forEach(item=>{
+    const c=ITEM_COLORS[item]||'#888';
+    html+=`<div class="item-opt" onmousedown="selectItem('${item}')"><div class="item-dot" style="background:${c}"></div>${item}</div>`;
+  });
+  dd.innerHTML=html;
+  dd.classList.add('show');
+}
+
+function selectItem(item){
+  document.getElementById('btnMat').value=item;
+  hideDropdown();
+  updatePreview();
+  markDirty();
+}
+
+function hideDropdown(){document.getElementById('itemDropdown').classList.remove('show')}
+
+// ===== MATERIAL PICKER MODAL =====
+let matPickerCallback = null;
+
+// Convert Minecraft item ID to PascalCase for wiki URL
+function itemIdToPascal(itemId){
+  return itemId.toLowerCase().split('_').map(function(w){ return w.charAt(0).toUpperCase() + w.slice(1); }).join('_');
+}
+
+// Special mappings for items whose wiki Invicon name differs from the PascalCase of their ID
+const WIKI_ICON_OVERRIDE = {
+  'enchanted_golden_apple':'Enchanted_Golden_Apple',
+  'oak_leaves':'Oak_Leaves',
+  'birch_leaves':'Birch_Leaves',
+  'spruce_leaves':'Spruce_Leaves',
+  'jungle_leaves':'Jungle_Leaves',
+  'acacia_leaves':'Acacia_Leaves',
+  'dark_oak_leaves':'Dark_Oak_Leaves',
+  'mangrove_leaves':'Mangrove_Leaves',
+  'cherry_leaves':'Cherry_Leaves',
+  'oak_log':'Oak_Log',
+  'birch_log':'Birch_Log',
+  'spruce_log':'Spruce_Log',
+  'jungle_log':'Jungle_Log',
+  'acacia_log':'Acacia_Log',
+  'dark_oak_log':'Dark_Oak_Log',
+  'cherry_log':'Cherry_Log',
+  'mangrove_log':'Mangrove_Log',
+  'oak_planks':'Oak_Planks',
+  'birch_planks':'Birch_Planks',
+  'spruce_planks':'Spruce_Planks',
+  'jungle_planks':'Jungle_Planks',
+  'acacia_planks':'Acacia_Planks',
+  'dark_oak_planks':'Dark_Oak_Planks',
+  'cherry_planks':'Cherry_Planks',
+  'mangrove_planks':'Mangrove_Planks',
+  'crimson_planks':'Crimson_Planks',
+  'warped_planks':'Warped_Planks',
+  'rose_bush':'Rose_Bush',
+  'player_head':'Player_Head',
+  'skeleton_skull':'Skeleton_Skull',
+  'wither_skeleton_skull':'Wither_Skeleton_Skull',
+  'zombie_head':'Zombie_Head',
+  'creeper_head':'Creeper_Head',
+  'dragon_head':'Dragon_Head',
+  'piglin_head':'Piglin_Head',
+  'glass_pane':'Glass_Pane',
+  'tinted_glass':'Tinted_Glass',
+  'oak_sign':'Oak_Sign',
+  'oak_door':'Oak_Door',
+  'oak_fence':'Oak_Fence',
+  'oak_slab':'Oak_Slab',
+  'oak_stairs':'Oak_Stairs',
+  'oak_trapdoor':'Oak_Trapdoor',
+  'oak_button':'Oak_Button',
+  'oak_pressure_plate':'Oak_Pressure_Plate',
+  'oak_boat':'Oak_Boat',
+  'iron_door':'Iron_Door',
+  'iron_trapdoor':'Iron_Trapdoor',
+  'stone_bricks':'Stone_Bricks',
+  'mossy_stone_bricks':'Mossy_Stone_Bricks',
+  'cracked_stone_bricks':'Cracked_Stone_Bricks',
+  'chiseled_stone_bricks':'Chiseled_Stone_Bricks',
+  'nether_bricks':'Nether_Bricks',
+  'red_nether_bricks':'Red_Nether_Bricks',
+  'quartz_bricks':'Quartz_Bricks',
+  'deepslate_bricks':'Deepslate_Bricks',
+  'deepslate_tiles':'Deepslate_Tiles',
+  'cracked_deepslate_bricks':'Cracked_Deepslate_Bricks',
+  'cracked_deepslate_tiles':'Cracked_Deepslate_Tiles',
+  'chiseled_deepslate':'Chiseled_Deepslate',
+  'polished_blackstone_bricks':'Polished_Blackstone_Bricks',
+  'cracked_polished_blackstone_bricks':'Cracked_Polished_Blackstone_Bricks',
+  'chiseled_polished_blackstone':'Chiseled_Polished_Blackstone',
+  'end_stone_bricks':'End_Stone_Bricks',
+  'mossy_cobblestone':'Mossy_Cobblestone',
+  'cobblestone_wall':'Cobblestone_Wall',
+  'mossy_cobblestone_wall':'Mossy_Cobblestone_Wall',
+  'mushroom_stem':'Mushroom_Stem',
+  'brown_mushroom_block':'Brown_Mushroom_Block',
+  'red_mushroom_block':'Red_Mushroom_Block',
+  'command_block':'Command_Block',
+  'chain_command_block':'Chain_Command_Block',
+  'repeating_command_block':'Repeating_Command_Block',
+  'mycelium':'Mycelium',
+  'podzol':'Podzol',
+  'coarse_dirt':'Coarse_Dirt',
+  'rooted_dirt':'Rooted_Dirt',
+  'red_sand':'Red_Sand',
+  'red_sandstone':'Red_Sandstone',
+  'cut_red_sandstone':'Cut_Red_Sandstone',
+  'chiseled_red_sandstone':'Chiseled_Red_Sandstone',
+  'smooth_red_sandstone':'Smooth_Red_Sandstone',
+  'cut_sandstone':'Cut_Sandstone',
+  'chiseled_sandstone':'Chiseled_Sandstone',
+  'smooth_sandstone':'Smooth_Sandstone',
+  'prismarine_bricks':'Prismarine_Bricks',
+  'dark_prismarine':'Dark_Prismarine',
+  'sea_lantern':'Sea_Lantern',
+  'magma_block':'Magma_Block',
+  'nether_wart_block':'Nether_Wart_Block',
+  'warped_wart_block':'Warped_Wart_Block',
+  'bone_block':'Bone_Block',
+  'hay_block':'Hay_Block',
+  'dried_kelp_block':'Dried_Kelp_Block',
+  'slime_block':'Slime_Block',
+  'honey_block':'Honey_Block',
+  'obsidian':'Obsidian',
+  'crying_obsidian':'Crying_Obsidian',
+  'bedrock':'Bedrock',
+  'ancient_debris':'Ancient_Debris',
+  'netherite_block':'Netherite_Block',
+  'respawn_anchor':'Respawn_Anchor',
+  'lodestone':'Lodestone',
+  'spawner':'Spawner',
+  'dragon_egg':'Dragon_Egg',
+  'end_portal_frame':'End_Portal_Frame',
+  'chorus_plant':'Chorus_Plant',
+  'chorus_flower':'Chorus_Flower',
+  'turtle_egg':'Turtle_Egg',
+  'sniffer_egg':'Sniffer_Egg',
+  'frogspawn':'Frogspawn',
+  'pearlescent_froglight':'Pearlescent_Froglight',
+  'verdant_froglight':'Verdant_Froglight',
+  'ochre_froglight':'Ochre_Froglight',
+  'reinforced_deepslate':'Reinforced_Deepslate',
+  'sculk_catalyst':'Sculk_Catalyst',
+  'sculk_shrieker':'Sculk_Shrieker',
+  'sculk_sensor':'Sculk_Sensor',
+  'calibrated_sculk_sensor':'Calibrated_Sculk_Sensor',
+  'decorated_pot':'Decorated_Pot',
+  'suspicious_sand':'Suspicious_Sand',
+  'suspicious_gravel':'Suspicious_Gravel',
+  'torchflower_crop':'Torchflower_Crop',
+  'pitcher_crop':'Pitcher_Crop',
+  'pitcher_plant':'Pitcher_Plant',
+  'skeleton_skull':'Skeleton_Skull',
+  'wither_skeleton_skull':'Wither_Skeleton_Skull',
+  'zombie_head':'Zombie_Head',
+  'creeper_head':'Creeper_Head',
+  'dragon_head':'Dragon_Head',
+  'piglin_head':'Piglin_Head',
+  'rose_bush':'Rose_Bush',
+  'sunflower':'Sunflower',
+  'lilac':'Lilac',
+  'peony':'Peony',
+  'large_fern':'Large_Fern',
+  'tall_grass':'Tall_Grass',
+  'tall_seagrass':'Tall_Seagrass',
+  'seagrass':'Seagrass',
+  'kelp':'Kelp',
+  'dried_kelp':'Dried_Kelp',
+  'sea_pickle':'Sea_Pickle',
+  'tube_coral':'Tube_Coral',
+  'brain_coral':'Brain_Coral',
+  'bubble_coral':'Bubble_Coral',
+  'fire_coral':'Fire_Coral',
+  'horn_coral':'Horn_Coral',
+  'dead_tube_coral':'Dead_Tube_Coral',
+  'dead_brain_coral':'Dead_Brain_Coral',
+  'dead_bubble_coral':'Dead_Bubble_Coral',
+  'dead_fire_coral':'Dead_Fire_Coral',
+  'dead_horn_coral':'Dead_Horn_Coral',
+  'tube_coral_block':'Tube_Coral_Block',
+  'brain_coral_block':'Brain_Coral_Block',
+  'bubble_coral_block':'Bubble_Coral_Block',
+  'fire_coral_block':'Fire_Coral_Block',
+  'horn_coral_block':'Horn_Coral_Block',
+  'dead_tube_coral_block':'Dead_Tube_Coral_Block',
+  'dead_brain_coral_block':'Dead_Brain_Coral_Block',
+  'dead_bubble_coral_block':'Dead_Bubble_Coral_Block',
+  'dead_fire_coral_block':'Dead_Fire_Coral_Block',
+  'dead_horn_coral_block':'Dead_Horn_Coral_Block',
+  'tube_coral_fan':'Tube_Coral_Fan',
+  'brain_coral_fan':'Brain_Coral_Fan',
+  'bubble_coral_fan':'Bubble_Coral_Fan',
+  'fire_coral_fan':'Fire_Coral_Fan',
+  'horn_coral_fan':'Horn_Coral_Fan',
+  'dead_tube_coral_fan':'Dead_Tube_Coral_Fan',
+  'dead_brain_coral_fan':'Dead_Brain_Coral_Fan',
+  'dead_bubble_coral_fan':'Dead_Bubble_Coral_Fan',
+  'dead_fire_coral_fan':'Dead_Fire_Coral_Fan',
+  'dead_horn_coral_fan':'Dead_Horn_Coral_Fan',
+  'warped_fungus':'Warped_Fungus',
+  'crimson_fungus':'Crimson_Fungus',
+  'warped_roots':'Warped_Roots',
+  'crimson_roots':'Crimson_Roots',
+  'nether_sprouts':'Nether_Sprouts',
+  'weeping_vines':'Weeping_Vines',
+  'twisting_vines':'Twisting_Vines',
+  'hanging_roots':'Hanging_Roots',
+  'spore_blossom':'Spore_Blossom',
+  'glow_lichen':'Glow_Lichen',
+  'pointed_dripstone':'Pointed_Dripstone',
+  'big_dripleaf':'Big_Dripleaf',
+  'small_dripleaf':'Small_Dripleaf',
+  'moss_carpet':'Moss_Carpet',
+  'moss_block':'Moss_Block',
+  'azalea_leaves':'Azalea_Leaves',
+  'flowering_azalea_leaves':'Flowering_Azalea_Leaves',
+  'azalea':'Azalea',
+  'flowering_azalea':'Flowering_Azalea',
+  'light':'Light',
+  'bamboo_block':'Bamboo_Block',
+  'stripped_bamboo_block':'Stripped_Bamboo_Block',
+  'bamboo_planks':'Bamboo_Planks',
+  'bamboo_mosaic':'Bamboo_Mosaic',
+  'bamboo_door':'Bamboo_Door',
+  'bamboo_trapdoor':'Bamboo_Trapdoor',
+  'bamboo_fence':'Bamboo_Fence',
+  'bamboo_slab':'Bamboo_Slab',
+  'bamboo_stairs':'Bamboo_Stairs',
+  'bamboo_button':'Bamboo_Button',
+  'bamboo_pressure_plate':'Bamboo_Pressure_Plate',
+  'bamboo_sign':'Bamboo_Sign',
+  'bamboo_raft':'Bamboo_Raft',
+  'chiseled_bookshelf':'Chiseled_Bookshelf',
+  'crafter':'Crafter',
+  'trial_spawner':'Trial_Spawner',
+  'vault':'Vault',
+  'copper_block':'Copper_Block',
+  'exposed_copper':'Exposed_Copper',
+  'weathered_copper':'Weathered_Copper',
+  'oxidized_copper':'Oxidized_Copper',
+  'cut_copper':'Cut_Copper',
+  'exposed_cut_copper':'Exposed_Cut_Copper',
+  'weathered_cut_copper':'Weathered_Cut_Copper',
+  'oxidized_cut_copper':'Oxidized_Cut_Copper',
+  'cut_copper_stairs':'Cut_Copper_Stairs',
+  'exposed_cut_copper_stairs':'Exposed_Cut_Copper_Stairs',
+  'weathered_cut_copper_stairs':'Weathered_Cut_Copper_Stairs',
+  'oxidized_cut_copper_stairs':'Oxidized_Cut_Copper_Stairs',
+  'cut_copper_slab':'Cut_Copper_Slab',
+  'exposed_cut_copper_slab':'Exposed_Cut_Copper_Slab',
+  'weathered_cut_copper_slab':'Weathered_Cut_Copper_Slab',
+  'oxidized_cut_copper_slab':'Oxidized_Cut_Copper_Slab',
+  'waxed_copper_block':'Waxed_Copper_Block',
+  'waxed_exposed_copper':'Waxed_Exposed_Copper',
+  'waxed_weathered_copper':'Waxed_Weathered_Copper',
+  'waxed_oxidized_copper':'Waxed_Oxidized_Copper',
+  'waxed_cut_copper':'Waxed_Cut_Copper',
+  'waxed_exposed_cut_copper':'Waxed_Exposed_Cut_Copper',
+  'waxed_weathered_cut_copper':'Waxed_Weathered_Cut_Copper',
+  'waxed_oxidized_cut_copper':'Waxed_Oxidized_Cut_Copper',
+  'waxed_cut_copper_stairs':'Waxed_Cut_Copper_Stairs',
+  'waxed_exposed_cut_copper_stairs':'Waxed_Exposed_Cut_Copper_Stairs',
+  'waxed_weathered_cut_copper_stairs':'Waxed_Weathered_Cut_Copper_Stairs',
+  'waxed_oxidized_cut_copper_stairs':'Waxed_Oxidized_Cut_Copper_Stairs',
+  'waxed_cut_copper_slab':'Waxed_Cut_Copper_Slab',
+  'waxed_exposed_cut_copper_slab':'Waxed_Exposed_Cut_Copper_Slab',
+  'waxed_weathered_cut_copper_slab':'Waxed_Weathered_Cut_Copper_Slab',
+  'waxed_oxidized_cut_copper_slab':'Waxed_Oxidized_Cut_Copper_Slab',
+  'raw_copper_block':'Raw_Copper_Block',
+  'raw_iron_block':'Raw_Iron_Block',
+  'raw_gold_block':'Raw_Gold_Block',
+  'mud_bricks':'Mud_Bricks',
+  'packed_mud':'Packed_Mud',
+  'reinforced_deepslate':'Reinforced_Deepslate',
+  'tuff_bricks':'Tuff_Bricks',
+  'chiseled_tuff':'Chiseled_Tuff',
+  'polished_tuff':'Polished_Tuff',
+  'tuff_slab':'Tuff_Slab',
+  'tuff_stairs':'Tuff_Stairs',
+  'tuff_wall':'Tuff_Wall',
+  // Mineral blocks use "Block_of_X" pattern on wiki
+  'diamond_block':'Block_of_Diamond',
+  'emerald_block':'Block_of_Emerald',
+  'gold_block':'Block_of_Gold',
+  'iron_block':'Block_of_Iron',
+  'netherite_block':'Block_of_Netherite',
+  'lapis_block':'Block_of_Lapis_Lazuli',
+  'redstone_block':'Block_of_Redstone',
+  'coal_block':'Block_of_Coal',
+  'raw_copper_block':'Block_of_Raw_Copper',
+  'raw_iron_block':'Block_of_Raw_Iron',
+  'raw_gold_block':'Block_of_Raw_Gold',
+  // Items with special wiki names
+  'totem_of_undying':'Totem_of_Undying',
+  'heart_of_the_sea':'Heart_of_the_Sea',
+  'lily_of_the_valley':'Lily_of_the_Valley',
+  'nether_star':'Nether_Star',
+  'experience_bottle':'Experience_Bottle',
+  'enchanted_book':'Enchanted_Book',
+  'end_crystal':'End_Crystal',
+  'tipped_arrow':'Tipped_Arrow',
+  'command_block':'Command_Block',
+  'chain_command_block':'Chain_Command_Block',
+  'repeating_command_block':'Repeating_Command_Block',
+  'leather_helmet':'Leather_Helmet',
+  'leather_chestplate':'Leather_Chestplate',
+  'leather_leggings':'Leather_Leggings',
+  'leather_boots':'Leather_Boots',
+  'steak':'Steak',
+  'cooked_beef':'Cooked_Beef',
+  'cooked_porkchop':'Cooked_Porkchop',
+  'cooked_mutton':'Cooked_Mutton',
+  'cooked_chicken':'Cooked_Chicken',
+  'cooked_rabbit':'Cooked_Rabbit',
+  'cooked_cod':'Cooked_Cod',
+  'cooked_salmon':'Cooked_Salmon',
+  'leather_helmet':'Leather_Cap',
+  'tipped_arrow':'Arrow',
+  'potion':'Potion',
+  'splash_potion':'Splash_Potion',
+  'lingering_potion':'Lingering_Potion',
+  'compass':'Compass',
+  'clock':'Clock',
+  'ender_eye':'Eye_of_Ender',
+  'light':'Light_15',
+  'jigsaw':'Jigsaw_Block',
+  'structure_block':'Structure_Block',
+  'structure_void':'Structure_Void',
+  'barrier':'Barrier',
+  'debug_stick':'Debug_Stick',
+  'tnt':'TNT',
+  'steak':'Raw_Beef',
+  'potion':'Water_Bottle',
+  'splash_potion':'Splash_Water_Bottle',
+  'lingering_potion':'Lingering_Water_Bottle',
+  'experience_bottle':'Bottle_o%27_Enchanting',
+};
+
+// Get Minecraft Wiki Invicon URL for an item (tries .png first, then .gif)
+function getWikiIconUrl(itemId){
+  const pascal = WIKI_ICON_OVERRIDE[itemId.toLowerCase()] || itemIdToPascal(itemId);
+  return 'https://minecraft.wiki/images/Invicon_' + pascal + '.png';
+}
+
+// Fallback handler: try .gif if .png fails, then show colored dot
+function onWikiIconError(img){
+  if(img.src.endsWith('.png')){
+    img.src = img.src.replace(/\.png$/, '.gif');
+    return;
+  }
+  img.style.display = 'none';
+  const dot = img.nextElementSibling;
+  if(dot && dot.classList.contains('mat-dot')) dot.style.display = 'block';
+}
+
+// Inline fallback for preview grids (tries .gif, then shows colored dot)
+function wikiImgError(el){
+  if(el.src.endsWith('.png')){ el.src = el.src.replace(/\.png$/, '.gif'); return; }
+  el.style.display='none'; el.nextElementSibling.style.display='block';
+}
+
+function openMaterialPicker(callback, currentVal){
+  matPickerCallback = callback;
+  document.getElementById('matModal').classList.add('show');
+  const searchInput = document.getElementById('matModalSearch');
+  searchInput.value = currentVal || '';
+  filterModalItems();
+  setTimeout(()=>searchInput.focus(), 50);
+}
+
+function closeMaterialPicker(){
+  document.getElementById('matModal').classList.remove('show');
+  matPickerCallback = null;
+}
+
+function filterModalItems(){
+  const val = document.getElementById('matModalSearch').value.toUpperCase().trim();
+  const grid = document.getElementById('matModalGrid');
+  const matches = val ? MC_ITEMS.filter(i=>i.includes(val)) : MC_ITEMS;
+  let html = '';
+  matches.forEach(item=>{
+    const c = ITEM_COLORS[item] || '#888';
+    const wikiUrl = getWikiIconUrl(item);
+    html += `<div class="mat-grid-item" onclick="pickModalItem('${item}')">
+      <img src="${wikiUrl}" onerror="onWikiIconError(this)" style="width:24px;height:24px;image-rendering:pixelated;flex-shrink:0;background:#1a1a2e;border-radius:3px">
+      <div class="mat-dot" style="background:${c};display:none"></div>
+      <div class="mat-label">${item}</div>
+    </div>`;
+  });
+  grid.innerHTML = html;
+  document.getElementById('matModalFooter').textContent = matches.length + ' items' + (val ? ' encontrados' : ' disponibles');
+}
+
+function pickModalItem(item){
+  if(matPickerCallback) matPickerCallback(item);
+  closeMaterialPicker();
+}
+
+// Close modal on Escape or click outside
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape' && document.getElementById('matModal').classList.contains('show')) closeMaterialPicker();
+});
+document.getElementById('matModal').addEventListener('click', function(e){
+  if(e.target===this) closeMaterialPicker();
+});
+
+// ===== CONDITIONS =====
+const CONDITION_TEMPLATES = [
+  {label:'Permiso (perm)', value:"perm *PERMNODE", fields:[{key:'PERMNODE',label:'Permission Node',placeholder:'chatcolor.color.red'}]},
+  {label:'PAPI Placeholder >= valor', value:'check papi *"%placeholder%" >= *valor', fields:[{key:'placeholder',label:'PAPI Placeholder',placeholder:'vault_eco_balance'},{key:'valor',label:'Valor minimo',placeholder:'1000'}]},
+  {label:'PAPI Placeholder == otro PAPI', value:'check papi *"%placeholder1%" == papi *"%placeholder2%"', fields:[{key:'placeholder1',label:'PAPI 1',placeholder:'player_name'},{key:'placeholder2',label:'PAPI 2',placeholder:'protectionstones_currentregion_owners'}]},
+  {label:'CheckItem en mano', value:'placeholder *"%checkitem_inhand:main,mat:MATERIAL%"', fields:[{key:'MATERIAL',label:'Material',placeholder:'DIAMOND_SWORD'},{key:'LORECHECK',label:'Lore contiene (opcional)',placeholder:'SC - {player_name}'},{key:'NAMECHECK',label:'Nombre contiene (opcional)',placeholder:'Mi Item'}]},
+  {label:'CheckItem cantidad en inventario', value:'placeholder *"%checkitem_amount_:MATERIAL%" >= cantidad', fields:[{key:'MATERIAL',label:'Material',placeholder:'GOLD_BLOCK'},{key:'cantidad',label:'Cantidad minima',placeholder:'10'},{key:'LORECHECK',label:'Lore contiene (opcional)',placeholder:'SC - {player_name}'},{key:'NAMECHECK',label:'Nombre contiene (opcional)',placeholder:'Mi Item'}]},
+  {label:'Meta variable (JS)', value:"$ meta.get('clave') == 'valor'", fields:[{key:'clave',label:'Meta Key',placeholder:'mines_phase'},{key:'valor',label:'Valor esperado',placeholder:'betting'}]},
+  {label:'Meta numeric <= 0 (JS)', value:"$ Number(meta.get('clave')) <= 0", fields:[{key:'clave',label:'Meta Key',placeholder:'mines_bet'}]},
+  {label:'Meta string (JS)', value:"$ String(meta.get('clave')) == 'valor'", fields:[{key:'clave',label:'Meta Key',placeholder:'cf_side'},{key:'valor',label:'Valor esperado',placeholder:'cara'}]},
+  {label:'Meta is falsy (JS)', value:"$ !meta.get('clave')", fields:[{key:'clave',label:'Meta Key',placeholder:'cf_target_set'}]},
+  {label:'Vault economy balance (JS)', value:'$ varDouble("%vault_eco_balance%") >= cantidad', fields:[{key:'cantidad',label:'Balance minimo',placeholder:'2500'}]},
+  {label:'Savedata valor (JS)', value:'$ varInt("%savedata_BASE_DATABASE%") >= cantidad', fields:[{key:'BASE',label:'Base savedata',placeholder:'player'},{key:'DATABASE',label:'Database/Key',placeholder:'evento_moneda'},{key:'cantidad',label:'Cantidad minima',placeholder:'1800'}]},
+  {label:'Custom currency (JS)', value:'$ varDouble("%CURRENCY%") >= cantidad', fields:[{key:'CURRENCY',label:'Currency placeholder',placeholder:'tm_tokens'},{key:'cantidad',label:'Cantidad minima',placeholder:'3500'}]},
+  {label:'Level math expression (JS)', value:'$ varDouble("%CURRENCY%") >= varDouble("%math_0:_{LEVEL_VAR}*MULT/DIV%")', fields:[{key:'CURRENCY',label:'Currency placeholder',placeholder:'tm_tokens'},{key:'LEVEL_VAR',label:'PAPI level var',placeholder:'epiclevels_level'},{key:'MULT',label:'Multiplicador',placeholder:'10000'},{key:'DIV',label:'Divisor',placeholder:'10'}]},
+  {label:'Siempre verdadero (JS)', value:'$ EXPRESSION', fields:[{key:'EXPRESSION',label:'Expresion JS',placeholder:'true // siempre pasa'}]},
+  {label:'Siempre falso (JS)', value:'$ EXPRESSION', fields:[{key:'EXPRESSION',label:'Expresion JS',placeholder:'false // nunca pasa'}]},
+  {label:'ANY [ perm OR perm ]', value:"any [ perm *PERM1 perm *PERM2 ]", fields:[{key:'PERM1',label:'Permission 1',placeholder:'pet.type.pig.fly'},{key:'PERM2',label:'Permission 2',placeholder:'sinmascotas'}]},
+  {label:'ALL [ perm AND check papi ]', value:"all [ perm *PERMALL check papi *\"%papi%\" >= *valor ]", fields:[{key:'PERMALL',label:'Permission',placeholder:'group.latam+'},{key:'papi',label:'PAPI Placeholder',placeholder:'protectionstones_currentregion_owners'},{key:'valor',label:'Valor comparacion',placeholder:'player_name'}]},
+  {label:'Argumentos de comando (JS)', value:'$ session.getArguments().length < 1'},
+  {label:'Rotacion por dia de la semana', value:'$ new Date().getDay() == DIA', fields:[{key:'DIA',label:'Dia de la semana',placeholder:'0',type:'select',options:[{v:'0',l:'Domingo (0)'},{v:'1',l:'Lunes (1)'},{v:'2',l:'Martes (2)'},{v:'3',l:'Miercoles (3)'},{v:'4',l:'Jueves (4)'},{v:'5',l:'Viernes (5)'},{v:'6',l:'Sabado (6)'}]}]},
+  {label:'Custom / editar libremente', value:''}
+];
+
+function buildConditionFromTemplate(tplIdx, fields){
+  const tpl = CONDITION_TEMPLATES[tplIdx];
+  if(!tpl || !tpl.fields) return tpl ? tpl.value : '';
+  let cond = tpl.value;
+  // Handle optional CheckItem lore/name fields
+  const loreVal = fields['LORECHECK'] || '';
+  const nameVal = fields['NAMECHECK'] || '';
+  // Build optional checkitem params
+  let extraParams = '';
+  if(loreVal) extraParams += ',lorecontains:' + loreVal;
+  if(nameVal) extraParams += ',namecontains:' + nameVal;
+  // For checkitem templates, inject extra params after MATERIAL
+  if(tpl.value.includes('checkitem_inhand') || tpl.value.includes('checkitem_amount')){
+    cond = cond.replace('MATERIAL%"', 'MATERIAL' + extraParams + '%"');
+  }
+  // Standard field replacement (skip LORECHECK/NAMECHECK as they're handled above)
+  const sorted = [...tpl.fields].filter(f=>f.key!=='LORECHECK'&&f.key!=='NAMECHECK').sort((a,b)=>b.key.length-a.key.length);
+  sorted.forEach(f=>{
+    const val = fields[f.key] || f.placeholder || '';
+    cond = cond.split(f.key).join(val);
+  });
+  return cond;
+}
+
+function findTemplateByValue(val){
+  return CONDITION_TEMPLATES.findIndex(t=>t.value===val);
+}
+
+function getTemplateFields(tplIdx){
+  const tpl = CONDITION_TEMPLATES[tplIdx];
+  if(!tpl || !tpl.fields) return {};
+  const fields = {};
+  tpl.fields.forEach(f=>{ fields[f.key] = f.placeholder; });
+  return fields;
+}
+
+function buildConditionDropdown(selectedIdx){
+  let html='<option value="">-- Seleccionar tipo --</option>';
+  CONDITION_TEMPLATES.forEach((t,idx)=>{
+    const sel=idx===selectedIdx?'selected':'';
+    html+=`<option value="${idx}" ${sel}>${t.label}</option>`;
+  });
+  return html;
+}
+
+function onConditionTypeChange(i,val){
+  if(val===''||val==null) return;
+  const icons = buttons[activeBtnId].icons;
+  const tplIdx = parseInt(val);
+  if(tplIdx < 0 || tplIdx >= CONDITION_TEMPLATES.length) return;
+  const tpl = CONDITION_TEMPLATES[tplIdx];
+  icons[i]._tplIdx = tplIdx;
+  if(tpl.fields){
+    icons[i].cfields = getTemplateFields(tplIdx);
+    icons[i].condition = buildConditionFromTemplate(tplIdx, icons[i].cfields);
+  } else {
+    icons[i].cfields = {};
+    icons[i].condition = tpl.value;
+  }
+  renderConditions();
+  markDirty();
+}
+
+function updateConditionField(i, fieldKey, val){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const icons = buttons[activeBtnId].icons;
+  if(!icons[i].cfields) icons[i].cfields = {};
+  icons[i].cfields[fieldKey] = val;
+  const tplIdx = icons[i]._tplIdx;
+  if(tplIdx >= 0){
+    icons[i].condition = buildConditionFromTemplate(tplIdx, icons[i].cfields);
+  }
+  markDirty();
+}
+
+function toggleOptionalField(i, fieldKey, enabled){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const icons = buttons[activeBtnId].icons;
+  if(!icons[i].cfields) icons[i].cfields = {};
+  if(enabled){
+    // Enable: set to placeholder or a default non-empty value
+    const tpl = CONDITION_TEMPLATES[icons[i]._tplIdx];
+    const field = tpl.fields.find(f=>f.key===fieldKey);
+    icons[i].cfields[fieldKey] = (field && field.placeholder) ? field.placeholder : 'valor';
+  } else {
+    // Disable: clear value
+    icons[i].cfields[fieldKey] = '';
+  }
+  const tplIdx = icons[i]._tplIdx;
+  if(tplIdx >= 0){
+    icons[i].condition = buildConditionFromTemplate(tplIdx, icons[i].cfields);
+  }
+  renderConditions();
+  markDirty();
+}
+
+function addCondition(){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  buttons[activeBtnId].icons.push({pri:1,condition:'$ true',mat:'BARRIER',name:'&c&lCOND',lore:'',cfields:{},_tplIdx:13,_collapsed:true,actions:[]});
+  renderConditions();
+  markDirty();
+}
+
+function removeCondition(i){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  buttons[activeBtnId].icons.splice(i,1);
+  renderConditions();
+  markDirty();
+}
+
+function toggleConditionCollapse(i){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  buttons[activeBtnId].icons[i]._collapsed = !buttons[activeBtnId].icons[i]._collapsed;
+  renderConditions();
+}
+
+// Condition Actions
+function addConditionAction(ci){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const icons = buttons[activeBtnId].icons;
+  if(!icons[ci].actions) icons[ci].actions = [];
+  icons[ci].actions.push({type:'console',value:'eco give %player_name% 1000',afields:{},_tplIdx:0});
+  renderConditions();
+  markDirty();
+}
+
+function removeConditionAction(ci,ai){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  buttons[activeBtnId].icons[ci].actions.splice(ai,1);
+  renderConditions();
+  markDirty();
+}
+
+function updateConditionAction(ci,ai,field,val){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const act = buttons[activeBtnId].icons[ci].actions[ai];
+  act[field]=val;
+  if(field==='type'&&(val==='close'||val==='refresh')) act.value='';
+  if(field==='type') act._tplIdx=-1;
+  markDirty();
+}
+
+function onConditionActionTemplateChange(ci,ai,val){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  if(val===''||val==null){ buttons[activeBtnId].icons[ci].actions[ai]._tplIdx=-1; renderConditions(); markDirty(); return; }
+  const tplIdx = parseInt(val);
+  if(tplIdx<0||tplIdx>=ACTION_TEMPLATES.length) return;
+  const tpl = ACTION_TEMPLATES[tplIdx];
+  const act = buttons[activeBtnId].icons[ci].actions[ai];
+  act._tplIdx = tplIdx;
+  act.type = tpl.type;
+  act.afields = {};
+  tpl.fields.forEach(f=>{ act.afields[f.key] = f.placeholder; });
+  act.value = buildActionFromTemplate(tplIdx, act.afields);
+  renderConditions();
+  markDirty();
+}
+
+function updateConditionActionField(ci,ai,fieldKey,val){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const act = buttons[activeBtnId].icons[ci].actions[ai];
+  if(!act.afields) act.afields={};
+  act.afields[fieldKey]=val;
+  if(act._tplIdx>=0) act.value = buildActionFromTemplate(act._tplIdx, act.afields);
+  markDirty();
+}
+
+function updateCondition(i,field,val){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  buttons[activeBtnId].icons[i][field]=val;
+  markDirty();
+}
+
+// Toggle advanced options
+function toggleAdvOptions(i){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const ic = buttons[activeBtnId].icons[i];
+  ic._advOpen = !ic._advOpen;
+  const el = document.getElementById('advOptions_'+i);
+  const toggle = document.getElementById('advToggle_'+i);
+  if(el) el.style.display = ic._advOpen ? 'block' : 'none';
+  if(toggle) toggle.innerHTML = ic._advOpen ? '&#9660;' : '&#9654;';
+}
+
+// Deny Actions
+function addConditionDenyAction(ci){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const icons = buttons[activeBtnId].icons;
+  if(!icons[ci].deny) icons[ci].deny = [];
+  icons[ci].deny.push({type:'tell',value:'&cNo cumples la condicion',afields:{},_tplIdx:-1});
+  if(!icons[ci]._advOpen) icons[ci]._advOpen = true;
+  renderConditions();
+  markDirty();
+}
+
+function removeConditionDenyAction(ci,ai){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  buttons[activeBtnId].icons[ci].deny.splice(ai,1);
+  renderConditions();
+  markDirty();
+}
+
+function updateConditionDenyAction(ci,ai,field,val){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const act = buttons[activeBtnId].icons[ci].deny[ai];
+  act[field]=val;
+  if(field==='type'&&(val==='close'||val==='refresh')) act.value='';
+  if(field==='type') act._tplIdx=-1;
+  markDirty();
+}
+
+function onConditionDenyActionTemplateChange(ci,ai,val){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  if(val===''||val==null){ buttons[activeBtnId].icons[ci].deny[ai]._tplIdx=-1; renderConditions(); markDirty(); return; }
+  const tplIdx = parseInt(val);
+  if(tplIdx<0||tplIdx>=ACTION_TEMPLATES.length) return;
+  const tpl = ACTION_TEMPLATES[tplIdx];
+  const act = buttons[activeBtnId].icons[ci].deny[ai];
+  act._tplIdx = tplIdx;
+  act.type = tpl.type;
+  act.afields = {};
+  tpl.fields.forEach(f=>{ act.afields[f.key] = f.placeholder; });
+  act.value = buildActionFromTemplate(tplIdx, act.afields);
+  renderConditions();
+  markDirty();
+}
+
+function updateConditionDenyActionField(ci,ai,fieldKey,val){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const act = buttons[activeBtnId].icons[ci].deny[ai];
+  if(!act.afields) act.afields={};
+  act.afields[fieldKey]=val;
+  if(act._tplIdx>=0) act.value = buildActionFromTemplate(act._tplIdx, act.afields);
+  markDirty();
+}
+
+// Helper: render deny actions list for a given condition index
+function renderConditionDenyActionsHtml(ci){
+  const icons = buttons[activeBtnId].icons;
+  const acts = icons[ci].deny || [];
+  let html='';
+  acts.forEach((a,ai)=>{
+    // Handle nested condition
+    if(a.type === '_condition'){
+      html += renderNestedConditionBlock(ci, 'deny', ai, a, 0);
+      return;
+    }
+    if(a._tplIdx===undefined) a._tplIdx=-1;
+    if(!a.afields) a.afields={};
+    const tplIdx = a._tplIdx;
+    const tpl = tplIdx>=0 ? ACTION_TEMPLATES[tplIdx] : null;
+    html+=`<div style="margin-bottom:4px"><select onchange="onConditionDenyActionTemplateChange(${ci},${ai},this.value)" style="font-size:.72rem">${buildActionTemplateDropdown(tplIdx>=0?tplIdx:-1)}</select></div>`;
+    let typeOpts=ACTION_TYPES.map(t=>`<option value="${t}" ${a.type===t?'selected':''}>${t}</option>`).join('');
+    const noVal = a.type==='close'||a.type==='refresh';
+    let fieldsHtml='';
+    if(tpl && tpl.fields.length>0){
+      fieldsHtml+='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">';
+      tpl.fields.forEach(f=>{
+        const val = a.afields[f.key] || '';
+        const needsFmt = ['MSG','TITULO','SUBTITULO'].includes(f.key);
+        const fieldInputId = 'condDenyField_'+ci+'_'+ai+'_'+f.key;
+        if(needsFmt){
+          fieldsHtml+=`<div style="flex:1;min-width:100px"><label style="font-size:.55rem;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;display:block">${f.label}</label><div style="display:flex;gap:4px;align-items:center"><input type="text" id="${fieldInputId}" value="${escHtml(val)}" placeholder="${escHtml(f.placeholder)}" oninput="updateConditionDenyActionField(${ci},${ai},'${f.key}',this.value)" style="font-size:.75rem;padding:4px 6px;flex:1">${buildFmtPopupHtml(fieldInputId, false)}</div></div>`;
+        } else {
+          fieldsHtml+=`<div style="flex:1;min-width:100px"><label style="font-size:.55rem;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;display:block">${f.label}</label><input type="text" value="${escHtml(val)}" placeholder="${escHtml(f.placeholder)}" oninput="updateConditionDenyActionField(${ci},${ai},'${f.key}',this.value)" style="font-size:.75rem;padding:4px 6px"></div>`;
+        }
+      });
+      fieldsHtml+='</div>';
+    }
+    const valInput = noVal
+      ? '<span style="color:#484f58;font-size:.72rem;font-style:italic;padding:5px 7px">(sin parametros)</span>'
+      : tpl
+        ? `<input type="text" value="${escHtml(a.value)}" style="color:#484f58;font-style:italic;font-size:.78rem" readonly>`
+        : `<input type="text" value="${escHtml(a.value)}" oninput="updateConditionDenyAction(${ci},${ai},'value',this.value)" style="font-size:.78rem">`;
+    html+=`<div class="action-row">
+      <select onchange="updateConditionDenyAction(${ci},${ai},'type',this.value);renderConditions()" style="font-size:.78rem">${typeOpts}</select>
+      ${valInput}
+      <button class="btn btn-sm btn-danger" onclick="removeConditionDenyAction(${ci},${ai})">&#10005;</button>
+    </div>${fieldsHtml}`;
+  });
+  if(acts.length===0) html += '<p style="color:#484f58;font-size:.75rem;text-align:center;padding:8px">Sin acciones deny</p>';
+  return html;
+}
+
+// Nested Conditions inside actions/deny
+function addNestedCondition(ci, listType){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const icons = buttons[activeBtnId].icons;
+  const list = listType === 'deny' ? (icons[ci].deny || []) : (icons[ci].actions || []);
+  if(listType === 'deny' && !icons[ci].deny) icons[ci].deny = [];
+  if(listType !== 'deny' && !icons[ci].actions) icons[ci].actions = [];
+  const newCond = {type:'_condition', condition:'$ true', actions:[], deny:[], _collapsed:false, _tplIdx:-1, cfields:{}};
+  list.push(newCond);
+  if(!icons[ci]._advOpen) icons[ci]._advOpen = true;
+  renderConditions();
+  markDirty();
+}
+
+function removeNestedCondition(ci, listType, idx){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const icons = buttons[activeBtnId].icons;
+  const list = listType === 'deny' ? icons[ci].deny : icons[ci].actions;
+  list.splice(idx, 1);
+  renderConditions();
+  markDirty();
+}
+
+function updateNestedCondition(ci, listType, idx, field, val){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const icons = buttons[activeBtnId].icons;
+  const list = listType === 'deny' ? icons[ci].deny : icons[ci].actions;
+  list[idx][field] = val;
+  markDirty();
+}
+
+function toggleNestedCondition(ci, listType, idx){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const icons = buttons[activeBtnId].icons;
+  const list = listType === 'deny' ? icons[ci].deny : icons[ci].actions;
+  list[idx]._collapsed = !list[idx]._collapsed;
+  renderConditions();
+}
+
+function onNestedConditionTypeChange(ci, listType, condIdx, tplIdxStr){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const tplIdx = parseInt(tplIdxStr);
+  if(tplIdx < 0) return;
+  const icons = buttons[activeBtnId].icons;
+  const list = listType === 'deny' ? icons[ci].deny : icons[ci].actions;
+  const nestedCond = list[condIdx];
+  const tpl = CONDITION_TEMPLATES[tplIdx];
+  if(!tpl) return;
+  nestedCond._tplIdx = tplIdx;
+  nestedCond.cfields = {};
+  // Initialize fields with placeholders
+  if(tpl.fields){
+    tpl.fields.forEach(f=>{
+      nestedCond.cfields[f.key] = f.placeholder || '';
+    });
+  }
+  // Build condition from template
+  nestedCond.condition = buildConditionFromTemplate(tplIdx, nestedCond.cfields);
+  renderConditions();
+  markDirty();
+}
+
+function updateNestedConditionField(ci, listType, condIdx, fieldKey, val){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const icons = buttons[activeBtnId].icons;
+  const list = listType === 'deny' ? icons[ci].deny : icons[ci].actions;
+  const nestedCond = list[condIdx];
+  if(!nestedCond.cfields) nestedCond.cfields = {};
+  nestedCond.cfields[fieldKey] = val;
+  // Rebuild condition from template
+  const tplIdx = nestedCond._tplIdx;
+  if(tplIdx >= 0){
+    nestedCond.condition = buildConditionFromTemplate(tplIdx, nestedCond.cfields);
+  }
+  markDirty();
+}
+
+// Add nested action inside a nested condition
+function addNestedCondAction(ci, listType, condIdx){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const icons = buttons[activeBtnId].icons;
+  const list = listType === 'deny' ? icons[ci].deny : icons[ci].actions;
+  const nestedCond = list[condIdx];
+  if(!nestedCond.actions) nestedCond.actions = [];
+  nestedCond.actions.push({type:'tell',value:'&aAccion',afields:{},_tplIdx:-1});
+  renderConditions();
+  markDirty();
+}
+
+function addNestedCondDeny(ci, listType, condIdx){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const icons = buttons[activeBtnId].icons;
+  const list = listType === 'deny' ? icons[ci].deny : icons[ci].actions;
+  const nestedCond = list[condIdx];
+  if(!nestedCond.deny) nestedCond.deny = [];
+  nestedCond.deny.push({type:'tell',value:'&cNo cumples la condicion',afields:{},_tplIdx:-1});
+  renderConditions();
+  markDirty();
+}
+
+function removeNestedCondAction(ci, listType, condIdx, actIdx){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const icons = buttons[activeBtnId].icons;
+  const list = listType === 'deny' ? icons[ci].deny : icons[ci].actions;
+  list[condIdx].actions.splice(actIdx, 1);
+  renderConditions();
+  markDirty();
+}
+
+function removeNestedCondDeny(ci, listType, condIdx, actIdx){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const icons = buttons[activeBtnId].icons;
+  const list = listType === 'deny' ? icons[ci].deny : icons[ci].actions;
+  list[condIdx].deny.splice(actIdx, 1);
+  renderConditions();
+  markDirty();
+}
+
+function updateNestedCondAction(ci, listType, condIdx, actIdx, field, val){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const icons = buttons[activeBtnId].icons;
+  const list = listType === 'deny' ? icons[ci].deny : icons[ci].actions;
+  const act = list[condIdx].actions[actIdx];
+  act[field] = val;
+  if(field==='type'&&(val==='close'||val==='refresh')) act.value='';
+  if(field==='type') act._tplIdx=-1;
+  markDirty();
+}
+
+function updateNestedCondDeny(ci, listType, condIdx, actIdx, field, val){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const icons = buttons[activeBtnId].icons;
+  const list = listType === 'deny' ? icons[ci].deny : icons[ci].actions;
+  const act = list[condIdx].deny[actIdx];
+  act[field] = val;
+  if(field==='type'&&(val==='close'||val==='refresh')) act.value='';
+  if(field==='type') act._tplIdx=-1;
+  markDirty();
+}
+
+// Render a nested condition block
+function renderNestedConditionBlock(ci, listType, condIdx, nestedCond, depth){
+  const prefix = `nested_${listType}_${ci}_${condIdx}`;
+  const collapsed = nestedCond._collapsed;
+  // Initialize nested condition template tracking
+  if(nestedCond._tplIdx === undefined) nestedCond._tplIdx = -1;
+  if(!nestedCond.cfields) nestedCond.cfields = {};
+  const tplIdx = nestedCond._tplIdx;
+  const tpl = tplIdx >= 0 ? CONDITION_TEMPLATES[tplIdx] : null;
+  const hasFields = tpl && tpl.fields && tpl.fields.length > 0;
+  let html = `<div class="nested-condition" style="margin-left:${depth*8}px">`;
+  html += `<div class="nested-condition-hdr">`;
+  html += `<span>&#9881; Condicion anidada</span>`;
+  html += `<div style="display:flex;gap:4px">`;
+  html += `<button class="btn btn-sm btn-secondary" onclick="toggleNestedCondition(${ci},'${listType}',${condIdx})">${collapsed ? '&#9654;' : '&#9660;'}</button>`;
+  html += `<button class="btn btn-sm btn-danger" onclick="removeNestedCondition(${ci},'${listType}',${condIdx})">&#10005;</button>`;
+  html += `</div></div>`;
+  if(!collapsed){
+    // Condition type dropdown
+    html += `<label style="font-size:.65rem;color:#8b949e">Tipo de Condicion</label>`;
+    html += `<select onchange="onNestedConditionTypeChange(${ci},'${listType}',${condIdx},this.value);this.selectedIndex=0" style="font-size:.75rem;margin-bottom:6px">${buildConditionDropdown(tplIdx)}</select>`;
+    // Template fields
+    if(hasFields){
+      html += `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">`;
+      tpl.fields.forEach(f=>{
+        const val = nestedCond.cfields[f.key] || f.placeholder || '';
+        const isSelect = f.type === 'select';
+        if(isSelect){
+          let opts = f.options.map(o=>`<option value="${o.v}" ${val===o.v?'selected':''}>${o.l}</option>`).join('');
+          html += `<div style="flex:1;min-width:90px"><label style="font-size:.55rem;color:#8b949e;text-transform:uppercase;letter-spacing:.5px">${f.label}</label><select onchange="updateNestedConditionField(${ci},'${listType}',${condIdx},'${f.key}',this.value)" style="font-size:.72rem">${opts}</select></div>`;
+        } else {
+          html += `<div style="flex:1;min-width:90px"><label style="font-size:.55rem;color:#8b949e;text-transform:uppercase;letter-spacing:.5px">${f.label}</label><input type="text" value="${escHtml(val)}" placeholder="${escHtml(f.placeholder)}" oninput="updateNestedConditionField(${ci},'${listType}',${condIdx},'${f.key}',this.value)" style="font-size:.72rem;padding:4px 6px"></div>`;
+        }
+      });
+      html += `</div>`;
+    }
+    // Condition result field
+    html += `<label style="font-size:.65rem;color:#8b949e">Condicion (resultado)</label>`;
+    html += `<input type="text" value="${escHtml(nestedCond.condition)}" oninput="updateNestedCondition(${ci},'${listType}',${condIdx},'condition',this.value)" style="font-size:.75rem;margin-bottom:8px">`;
+    // Actions section
+    html += `<div class="nested-actions">`;
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">`;
+    html += `<span style="font-size:.6rem;color:#58a6ff;font-weight:600">ACCIONES (si cumple)</span>`;
+    html += `<button class="btn btn-sm btn-primary" style="font-size:.65rem" onclick="addNestedCondAction(${ci},'${listType}',${condIdx})">+ Accion</button>`;
+    html += `</div>`;
+    const acts = nestedCond.actions || [];
+    if(acts.length === 0){
+      html += '<p style="color:#484f58;font-size:.7rem;text-align:center;padding:4px">Sin acciones</p>';
+    } else {
+      acts.forEach((a, ai) => {
+        if(a._tplIdx===undefined) a._tplIdx=-1;
+        if(!a.afields) a.afields={};
+        const tplIdx2 = a._tplIdx;
+        const tpl2 = tplIdx2>=0 ? ACTION_TEMPLATES[tplIdx2] : null;
+        html+=`<div style="margin-bottom:4px"><select onchange="onNestedCondActTplChange(${ci},'${listType}',${condIdx},${ai},this.value)" style="font-size:.68rem">${buildActionTemplateDropdown(tplIdx2>=0?tplIdx2:-1)}</select></div>`;
+        let typeOpts=ACTION_TYPES.map(t=>`<option value="${t}" ${a.type===t?'selected':''}>${t}</option>`).join('');
+        const noVal = a.type==='close'||a.type==='refresh';
+        const valInput = noVal
+          ? '<span style="color:#484f58;font-size:.68rem;font-style:italic">(sin parametros)</span>'
+          : tpl2
+            ? `<input type="text" value="${escHtml(a.value)}" style="color:#484f58;font-style:italic;font-size:.72rem" readonly>`
+            : `<input type="text" value="${escHtml(a.value)}" oninput="updateNestedCondAction(${ci},'${listType}',${condIdx},${ai},'value',this.value)" style="font-size:.72rem">`;
+        html+=`<div class="action-row"><select onchange="updateNestedCondAction(${ci},'${listType}',${condIdx},${ai},'type',this.value);renderConditions()" style="font-size:.72rem">${typeOpts}</select>${valInput}<button class="btn btn-sm btn-danger" onclick="removeNestedCondAction(${ci},'${listType}',${condIdx},${ai})">&#10005;</button></div>`;
+      });
+    }
+    html += `</div>`;
+    // Deny section
+    html += `<div class="nested-deny">`;
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">`;
+    html += `<span style="font-size:.6rem;color:#f85149;font-weight:600">DENY (si NO cumple)</span>`;
+    html += `<button class="btn btn-sm btn-primary" style="font-size:.65rem" onclick="addNestedCondDeny(${ci},'${listType}',${condIdx})">+ Accion Deny</button>`;
+    html += `</div>`;
+    const denyActs = nestedCond.deny || [];
+    if(denyActs.length === 0){
+      html += '<p style="color:#484f58;font-size:.7rem;text-align:center;padding:4px">Sin acciones deny</p>';
+    } else {
+      denyActs.forEach((a, ai) => {
+        if(a._tplIdx===undefined) a._tplIdx=-1;
+        if(!a.afields) a.afields={};
+        const tplIdx2 = a._tplIdx;
+        const tpl2 = tplIdx2>=0 ? ACTION_TEMPLATES[tplIdx2] : null;
+        html+=`<div style="margin-bottom:4px"><select onchange="onNestedCondDenyTplChange(${ci},'${listType}',${condIdx},${ai},this.value)" style="font-size:.68rem">${buildActionTemplateDropdown(tplIdx2>=0?tplIdx2:-1)}</select></div>`;
+        let typeOpts=ACTION_TYPES.map(t=>`<option value="${t}" ${a.type===t?'selected':''}>${t}</option>`).join('');
+        const noVal = a.type==='close'||a.type==='refresh';
+        const valInput = noVal
+          ? '<span style="color:#484f58;font-size:.68rem;font-style:italic">(sin parametros)</span>'
+          : tpl2
+            ? `<input type="text" value="${escHtml(a.value)}" style="color:#484f58;font-style:italic;font-size:.72rem" readonly>`
+            : `<input type="text" value="${escHtml(a.value)}" oninput="updateNestedCondDeny(${ci},'${listType}',${condIdx},${ai},'value',this.value)" style="font-size:.72rem">`;
+        html+=`<div class="action-row"><select onchange="updateNestedCondDeny(${ci},'${listType}',${condIdx},${ai},'type',this.value);renderConditions()" style="font-size:.72rem">${typeOpts}</select>${valInput}<button class="btn btn-sm btn-danger" onclick="removeNestedCondDeny(${ci},'${listType}',${condIdx},${ai})">&#10005;</button></div>`;
+      });
+    }
+    html += `</div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+// Template change handlers for nested condition actions
+function onNestedCondActTplChange(ci, listType, condIdx, actIdx, val){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const icons = buttons[activeBtnId].icons;
+  const list = listType === 'deny' ? icons[ci].deny : icons[ci].actions;
+  if(val===''||val==null){ list[condIdx].actions[actIdx]._tplIdx=-1; renderConditions(); markDirty(); return; }
+  const tplIdx = parseInt(val);
+  if(tplIdx<0||tplIdx>=ACTION_TEMPLATES.length) return;
+  const tpl = ACTION_TEMPLATES[tplIdx];
+  const act = list[condIdx].actions[actIdx];
+  act._tplIdx = tplIdx;
+  act.type = tpl.type;
+  act.afields = {};
+  tpl.fields.forEach(f=>{ act.afields[f.key] = f.placeholder; });
+  act.value = buildActionFromTemplate(tplIdx, act.afields);
+  renderConditions();
+  markDirty();
+}
+
+function onNestedCondDenyTplChange(ci, listType, condIdx, actIdx, val){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const icons = buttons[activeBtnId].icons;
+  const list = listType === 'deny' ? icons[ci].deny : icons[ci].actions;
+  if(val===''||val==null){ list[condIdx].deny[actIdx]._tplIdx=-1; renderConditions(); markDirty(); return; }
+  const tplIdx = parseInt(val);
+  if(tplIdx<0||tplIdx>=ACTION_TEMPLATES.length) return;
+  const tpl = ACTION_TEMPLATES[tplIdx];
+  const act = list[condIdx].deny[actIdx];
+  act._tplIdx = tplIdx;
+  act.type = tpl.type;
+  act.afields = {};
+  tpl.fields.forEach(f=>{ act.afields[f.key] = f.placeholder; });
+  act.value = buildActionFromTemplate(tplIdx, act.afields);
+  renderConditions();
+  markDirty();
+}
+
+// Helper: render actions list for a given condition index
+function renderConditionActionsHtml(ci){
+  const icons = buttons[activeBtnId].icons;
+  const acts = icons[ci].actions || [];
+  let html='';
+  acts.forEach((a,ai)=>{
+    // Handle nested condition
+    if(a.type === '_condition'){
+      html += renderNestedConditionBlock(ci, 'actions', ai, a, 0);
+      return;
+    }
+    if(a._tplIdx===undefined) a._tplIdx=-1;
+    if(!a.afields) a.afields={};
+    const tplIdx = a._tplIdx;
+    const tpl = tplIdx>=0 ? ACTION_TEMPLATES[tplIdx] : null;
+    html+=`<div style="margin-bottom:4px"><select onchange="onConditionActionTemplateChange(${ci},${ai},this.value)" style="font-size:.72rem">${buildActionTemplateDropdown(tplIdx>=0?tplIdx:-1)}</select></div>`;
+    let typeOpts=ACTION_TYPES.map(t=>`<option value="${t}" ${a.type===t?'selected':''}>${t}</option>`).join('');
+    const noVal = a.type==='close'||a.type==='refresh';
+    let fieldsHtml='';
+    if(tpl && tpl.fields.length>0){
+      fieldsHtml+='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">';
+      tpl.fields.forEach(f=>{
+        const val = a.afields[f.key] || '';
+        const needsFmt = ['MSG','TITULO','SUBTITULO'].includes(f.key);
+        const fieldInputId = 'condActField_'+ci+'_'+ai+'_'+f.key;
+        if(needsFmt){
+          fieldsHtml+=`<div style="flex:1;min-width:100px"><label style="font-size:.55rem;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;display:block">${f.label}</label><div style="display:flex;gap:4px;align-items:center"><input type="text" id="${fieldInputId}" value="${escHtml(val)}" placeholder="${escHtml(f.placeholder)}" oninput="updateConditionActionField(${ci},${ai},'${f.key}',this.value)" style="font-size:.75rem;padding:4px 6px;flex:1">${buildFmtPopupHtml(fieldInputId, false)}</div></div>`;
+        } else {
+          fieldsHtml+=`<div style="flex:1;min-width:100px"><label style="font-size:.55rem;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;display:block">${f.label}</label><input type="text" value="${escHtml(val)}" placeholder="${escHtml(f.placeholder)}" oninput="updateConditionActionField(${ci},${ai},'${f.key}',this.value)" style="font-size:.75rem;padding:4px 6px"></div>`;
+        }
+      });
+      fieldsHtml+='</div>';
+    }
+    const valInput = noVal
+      ? '<span style="color:#484f58;font-size:.72rem;font-style:italic;padding:5px 7px">(sin parametros)</span>'
+      : tpl
+        ? `<input type="text" value="${escHtml(a.value)}" style="color:#484f58;font-style:italic;font-size:.78rem" readonly>`
+        : `<input type="text" value="${escHtml(a.value)}" oninput="updateConditionAction(${ci},${ai},'value',this.value)" style="font-size:.78rem">`;
+    html+=`<div class="action-row">
+      <select onchange="updateConditionAction(${ci},${ai},'type',this.value);renderConditions()" style="font-size:.78rem">${typeOpts}</select>
+      ${valInput}
+      <button class="btn btn-sm btn-danger" onclick="removeConditionAction(${ci},${ai})">&#10005;</button>
+    </div>${fieldsHtml}`;
+  });
+  if(acts.length===0) html += '<p style="color:#484f58;font-size:.75rem;text-align:center;padding:8px">Sin acciones</p>';
+  return html;
+}
+
+function renderConditions(){
+  if(!activeBtnId||!buttons[activeBtnId]){
+    document.getElementById('condList').innerHTML='';
+    return;
+  }
+  const icons = buttons[activeBtnId].icons;
+  if(icons.length===0){
+    document.getElementById('condList').innerHTML='<p style="color:#484f58;font-size:.8rem;text-align:center;padding:20px">Sin iconos condicionales</p>';
+    return;
+  }
+  let html='';
+  icons.forEach((ic,i)=>{
+    if(ic._collapsed===undefined) ic._collapsed=true;
+    if(!ic.actions) ic.actions=[];
+    let tplIdx = ic._tplIdx != null ? ic._tplIdx : CONDITION_TEMPLATES.findIndex(t=>t.value===ic.condition);
+    if(tplIdx >= 0) ic._tplIdx = tplIdx;
+    const tpl = tplIdx >= 0 ? CONDITION_TEMPLATES[tplIdx] : null;
+    const hasFields = tpl && tpl.fields && tpl.fields.length > 0;
+    let fieldsHtml = '';
+    if(hasFields){
+      if(!ic.cfields) ic.cfields = getTemplateFields(tplIdx);
+      fieldsHtml = '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">';
+      tpl.fields.forEach(f=>{
+        const val = ic.cfields[f.key] || f.placeholder || '';
+        const isMatField = f.key === 'MATERIAL' || f.label.toLowerCase().includes('material');
+        const isOptional = f.key === 'LORECHECK' || f.key === 'NAMECHECK';
+        const isSelect = f.type === 'select';
+        const isEnabled = isOptional && val !== '';
+        if(isOptional){
+          fieldsHtml += `<div style="flex:1;min-width:100px"><label>${f.label} <span style="color:#484f58;font-size:.7rem">(opcional)</span> <input type="checkbox" ${isEnabled?'checked':''} onchange="toggleOptionalField(${i},'${f.key}',this.checked)" style="vertical-align:middle"></label><input type="text" value="${escHtml(val)}" placeholder="${escHtml(f.placeholder)}" ${isEnabled?'':'disabled'} oninput="updateConditionField(${i},'${f.key}',this.value);document.getElementById('condVal_${i}').value=buildConditionFromTemplate(${tplIdx},buttons[activeBtnId].icons[${i}].cfields)"></div>`;
+        } else if(isSelect){
+          let opts = f.options.map(o=>`<option value="${o.v}" ${val===o.v?'selected':''}>${o.l}</option>`).join('');
+          fieldsHtml += `<div style="flex:1;min-width:100px"><label>${f.label}</label><select onchange="updateConditionField(${i},'${f.key}',this.value);document.getElementById('condVal_${i}').value=buildConditionFromTemplate(${tplIdx},buttons[activeBtnId].icons[${i}].cfields)">${opts}</select></div>`;
+        } else if(isMatField){
+          fieldsHtml += `<div style="flex:1;min-width:100px"><label>${f.label}</label><div class="mat-field-wrap"><input type="text" value="${escHtml(val)}" placeholder="${escHtml(f.placeholder)}" oninput="updateConditionField(${i},'${f.key}',this.value);document.getElementById('condVal_${i}').value=buildConditionFromTemplate(${tplIdx},buttons[activeBtnId].icons[${i}].cfields)"><button class="btn btn-secondary btn-sm" onclick="openMaterialPicker(function(item){updateConditionField(${i},'${f.key}',item);renderConditions()},this.previousElementSibling.value)">&#9638;</button></div></div>`;
+        } else {
+          fieldsHtml += `<div style="flex:1;min-width:100px"><label>${f.label}</label><input type="text" value="${escHtml(val)}" placeholder="${escHtml(f.placeholder)}" oninput="updateConditionField(${i},'${f.key}',this.value);document.getElementById('condVal_${i}').value=buildConditionFromTemplate(${tplIdx},buttons[activeBtnId].icons[${i}].cfields)"></div>`;
+        }
+      });
+      fieldsHtml += '</div>';
+    }
+    const collapsed = ic._collapsed;
+    const bodyClass = collapsed ? 'cond-body' : 'cond-body show';
+    const collapseIconClass = collapsed ? 'collapse-icon collapsed' : 'collapse-icon';
+    const condSummary = escHtml(ic.condition.length > 45 ? ic.condition.substring(0,45)+'...' : ic.condition);
+    html+=`<div class="cond-icon">
+      <div class="cond-hdr" onclick="toggleConditionCollapse(${i})">
+        <span class="${collapseIconClass}">&#9660;</span>
+        <span>&#9881; Condicion #${i+1} (pri: ${ic.pri})</span>
+        <span class="cond-summary">${condSummary}</span>
+        <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();removeCondition(${i})">&#10005;</button>
+      </div>
+      <div class="${bodyClass}">
+        <div class="row">
+          <div><label>Prioridad</label><input type="number" value="${ic.pri}" min="1" onchange="updateCondition(${i},'pri',parseInt(this.value)||1);renderConditions()"></div>
+        </div>
+        <label>Tipo de Condicion</label>
+        <select onchange="onConditionTypeChange(${i},this.value);this.selectedIndex=0">${buildConditionDropdown(tplIdx)}</select>
+        ${fieldsHtml}
+        <label>Condicion (resultado)</label>
+        <input type="text" id="condVal_${i}" value="${escHtml(ic.condition)}" oninput="updateCondition(${i},'condition',this.value)">
+        <label>Material</label>
+        <div class="mat-field-wrap"><input type="text" value="${escHtml(ic.mat)}" oninput="updateCondition(${i},'mat',this.value)"><button class="btn btn-secondary btn-sm" onclick="openMaterialPicker(function(item){updateCondition(${i},'mat',item);renderConditions()},this.previousElementSibling.value)">&#9638;</button></div>
+        <label>Nombre</label>
+        <div style="display:flex;gap:4px;align-items:center">
+          <input type="text" id="condName_${i}" value="${escHtml(ic.name)}" oninput="updateCondition(${i},'name',this.value)" style="flex:1">
+          ${buildFmtPopupHtml('condName_'+i, false)}
+        </div>
+        <label>Lore</label>
+        <div style="display:flex;gap:4px;align-items:flex-start">
+          <textarea id="condLore_${i}" rows="2" oninput="updateCondition(${i},'lore',this.value)" style="flex:1">${escHtml(ic.lore)}</textarea>
+          ${buildFmtPopupHtml('condLore_'+i, false)}
+        </div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid #21262d">
+          <div class="adv-options-hdr" onclick="toggleAdvOptions(${i})">
+            <span style="font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:#f0883e;font-weight:600">&#9881; Opciones avanzadas</span>
+            <span class="adv-toggle-icon" id="advToggle_${i}">${ic._advOpen ? '&#9660;' : '&#9654;'}</span>
+          </div>
+          <div id="advOptions_${i}" style="display:${ic._advOpen ? 'block' : 'none'}">
+            <div style="margin-bottom:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <span style="font-size:.65rem;text-transform:uppercase;letter-spacing:1px;color:#58a6ff;font-weight:600">Acciones (si cumple)</span>
+                <div style="display:flex;gap:4px">
+                  <button class="btn btn-sm btn-primary" onclick="addNestedCondition(${i},'actions')" title="Agregar condicion anidada">+ Condicion</button>
+                  <button class="btn btn-sm btn-primary" onclick="addConditionAction(${i})">+ Accion</button>
+                </div>
+              </div>
+              ${renderConditionActionsHtml(i)}
+            </div>
+            <div style="margin-bottom:8px;padding-top:10px;border-top:1px dashed #21262d">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <span style="font-size:.65rem;text-transform:uppercase;letter-spacing:1px;color:#f85149;font-weight:600">Deny (si NO cumple)</span>
+                <div style="display:flex;gap:4px">
+                  <button class="btn btn-sm btn-primary" onclick="addNestedCondition(${i},'deny')" title="Agregar condicion anidada">+ Condicion</button>
+                  <button class="btn btn-sm btn-primary" onclick="addConditionDenyAction(${i})">+ Accion Deny</button>
+                </div>
+              </div>
+              ${renderConditionDenyActionsHtml(i)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('condList').innerHTML=html;
+}
+
+// ===== PREVIEW =====
+function renderPreview(){
+  saveButtonFromEditor();
+  const grid = document.getElementById('previewGrid');
+  const legend = document.getElementById('previewLegend');
+  if(shape.length===0 || Object.keys(buttons).length===0){
+    grid.innerHTML='<div class="empty-state" style="padding:20px"><div class="icon">&#9638;</div><p>Configura el shape y auto-detecta los botones</p></div>';
+    legend.innerHTML='';
+    return;
+  }
+  // Build grid
+  grid.style.gridTemplateColumns = 'repeat(9, 52px)';
+  let html = '';
+  for(let r=0;r<shape.length;r++){
+    for(let c=0;c<9;c++){
+      const ch = shape[r][c];
+      if(ch==='-'){
+        html += '<div class="preview-cell empty-cell"></div>';
+      } else if(buttons[ch]){
+        const b = buttons[ch];
+        const wikiUrl = getWikiIconUrl(b.mat);
+        const dotColor = ITEM_COLORS[b.mat]||'#888';
+        html += `<div class="preview-cell has-item" onclick="showItemDetail('${ch}')" title="Click para ver detalle"><img src="${wikiUrl}" onerror="wikiImgError(this)" style="width:32px;height:32px;image-rendering:pixelated"><div style="width:32px;height:32px;background:${dotColor};border-radius:4px;display:none"></div><div class="cell-label">${ch}</div></div>`;
+      } else {
+        html += '<div class="preview-cell empty-cell"></div>';
+      }
+    }
+  }
+  grid.innerHTML = html;
+  // Build legend
+  const ids = Object.keys(buttons).sort();
+  let lhtml = '';
+  ids.forEach(id=>{
+    const b = buttons[id];
+    const wikiUrl = getWikiIconUrl(b.mat);
+    const dotColor = ITEM_COLORS[b.mat]||'#888';
+    lhtml += `<div class="preview-legend-item"><img src="${wikiUrl}" onerror="wikiImgError(this)" style="width:18px;height:18px;image-rendering:pixelated;flex-shrink:0"><div style="width:18px;height:18px;background:${dotColor};border-radius:3px;flex-shrink:0;display:none"></div><span>'${id}' = ${b.mat}</span></div>`;
+  });
+  legend.innerHTML = lhtml;
+}
+
+// ===== ITEM DETAIL MODAL =====
+let _detailCondState = {};
+
+function showItemDetail(charId){
+  if(!buttons[charId]) return;
+  _detailCondState = {};
+  const overlay = document.getElementById('itemDetailOverlay');
+  overlay.style.display = 'block';
+  renderDetailModal(charId);
+}
+
+function renderDetailModal(charId){
+  const b = buttons[charId];
+  const overlay = document.getElementById('itemDetailOverlay');
+  const icons = b.icons || [];
+  // Determine which icon to show (highest priority active condition)
+  let displayMat = b.mat, displayName = b.name, displayLore = b.lore;
+  let activeCondIdx = -1;
+  const sortedIcons = icons.map((ic,idx)=>({ic,idx})).filter(e=>_detailCondState[e.idx]).sort((a,b)=>(a.ic.pri||1)-(b.ic.pri||1));
+  if(sortedIcons.length > 0){
+    const winner = sortedIcons[0].ic;
+    activeCondIdx = sortedIcons[0].idx;
+    if(winner.mat) displayMat = winner.mat;
+    if(winner.name) displayName = winner.name;
+    if(winner.lore !== undefined && winner.lore !== '') displayLore = winner.lore;
+  }
+  // Build tooltip
+  const color = ITEM_COLORS[displayMat] || '#888';
+  const wikiUrl = getWikiIconUrl(displayMat);
+  let tooltipHtml = '<div class="mc-tooltip">';
+  tooltipHtml += '<div style="display:flex;align-items:center;gap:8px">';
+  tooltipHtml += `<img class="mc-item-icon" src="${wikiUrl}" onerror="wikiImgError(this)" style="image-rendering:pixelated;display:inline-block;width:28px;height:28px;background:#1a1a2e;border-radius:2px"><div class="mc-item-icon" style="background:${color};display:none"></div>`;
+  tooltipHtml += `<span class="mc-item-name">${renderColoredText(displayName || charId)}</span>`;
+  tooltipHtml += '</div>';
+  if(displayLore){
+    tooltipHtml += '<div class="mc-item-lore">';
+    displayLore.split('\n').forEach(line=>{
+      tooltipHtml += '<div>' + renderColoredText(line) + '</div>';
+    });
+    tooltipHtml += '</div>';
+  }
+  tooltipHtml += '</div>';
+  // Build conditions panel
+  let condHtml = '';
+  if(icons.length > 0){
+    condHtml = '<div class="mc-conditions"><div class="mc-conditions-title">Condiciones (' + icons.length + ')</div>';
+    icons.forEach((ic, idx)=>{
+      const isOn = !!_detailCondState[idx];
+      const isActive = isOn && activeCondIdx === idx;
+      const tplIdx = ic._tplIdx;
+      const condLabel = (tplIdx >= 0 && CONDITION_TEMPLATES[tplIdx]) ? CONDITION_TEMPLATES[tplIdx].label : 'Custom';
+      condHtml += `<div class="mc-cond-row${isActive?' active':''}">`;
+      condHtml += `<button class="mc-cond-toggle${isOn?' on':''}" onclick="togglePreviewCond('${charId}',${idx})"></button>`;
+      condHtml += '<div class="mc-cond-info">';
+      condHtml += `<div class="mc-cond-label">${escHtml(condLabel)}</div>`;
+      condHtml += `<div class="mc-cond-expr">${escHtml(ic.condition || 'custom')}</div>`;
+      condHtml += '</div>';
+      condHtml += `<span class="mc-cond-pri">P:${ic.pri||1}</span>`;
+      condHtml += '</div>';
+    });
+    condHtml += '</div>';
+  } else {
+    condHtml = '<div class="mc-no-conditions">Sin condiciones configuradas</div>';
+  }
+  // Actions summary
+  const allActions = [];
+  if(b.actions && b.actions.length > 0) b.actions.forEach(a=>allActions.push({src:charId,a:a}));
+  icons.forEach((ic,idx)=>{
+    if(_detailCondState[idx] && ic.actions){
+      ic.actions.forEach(a=>allActions.push({src:'Cond '+(idx+1),a:a}));
+    }
+  });
+  let actHtml = '';
+  if(allActions.length > 0){
+    actHtml = '<div class="mc-conditions"><div class="mc-conditions-title">Acciones (' + allActions.length + ')</div>';
+    allActions.forEach(entry=>{
+      const a = entry.a;
+      let display = a.type === 'close' || a.type === 'refresh' ? a.type : (a.type + ': ' + a.value);
+      actHtml += `<div style="font-size:.68rem;color:#8b949e;padding:2px 0;font-family:Courier New,monospace">\u2022 ${escHtml(display)} <span style="color:#30363d;font-size:.6rem">[${escHtml(entry.src)}]</span></div>`;
+    });
+    actHtml += '</div>';
+  }
+  overlay.innerHTML = `<div class="item-detail-overlay" onclick="if(event.target===this)closeItemDetail()">
+<div class="item-detail-modal">
+  <div class="mc-tooltip-header">
+    <span>\u2694 Item Detail \u2014 Slot '${escHtml(charId)}'</span>
+    <button onclick="closeItemDetail()">\u2715</button>
+  </div>
+  <div class="mc-tooltip-body">
+    ${tooltipHtml}
+    ${condHtml}
+    ${actHtml}
+    <div class="mc-actions-bar">
+      <button onclick="closeItemDetail()">Cerrar</button>
+    </div>
+  </div>
+</div>
+</div>`;
+}
+
+function togglePreviewCond(charId, condIdx){
+  _detailCondState[condIdx] = !_detailCondState[condIdx];
+  renderDetailModal(charId);
+}
+
+function closeItemDetail(){
+  document.getElementById('itemDetailOverlay').style.display = 'none';
+  document.getElementById('itemDetailOverlay').innerHTML = '';
+}
+
+// Close on Escape
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape' && document.getElementById('itemDetailOverlay').style.display!=='none') closeItemDetail();
+});
+
+// ===== ACTIONS =====
+const ACTION_TYPES = ['tell','sound','console','close','refresh','set-page','FUNCTION','title','open','kes'];
+
+const ACTION_TEMPLATES = [
+  {label:'Eco: Dar dinero', type:'console', value:'eco give %player_name% AMOUNT', fields:[{key:'AMOUNT',label:'Cantidad',placeholder:'1000'}]},
+  {label:'Eco: Quitar dinero', type:'console', value:'eco take %player_name% AMOUNT', fields:[{key:'AMOUNT',label:'Cantidad',placeholder:'1000'}]},
+  {label:'MMOItems: Entregar item', type:'console', value:'mi give CATEGORY ITEM_ID %player_name% AMOUNT', fields:[{key:'CATEGORY',label:'Category',placeholder:'TOOL'},{key:'ITEM_ID',label:'Item ID',placeholder:'HACHA_IRON'},{key:'AMOUNT',label:'Cantidad',placeholder:'1'}]},
+  {label:'SaveData: Sumar a jugador', type:'console', value:'savedata player %player_name% BASE DATABASE add AMOUNT', fields:[{key:'BASE',label:'Base',placeholder:'player'},{key:'DATABASE',label:'Database / Key',placeholder:'evento_moneda'},{key:'AMOUNT',label:'Cantidad',placeholder:'100'}]},
+  {label:'SaveData: Restar a jugador', type:'console', value:'savedata player %player_name% BASE DATABASE subtract AMOUNT', fields:[{key:'BASE',label:'Base',placeholder:'player'},{key:'DATABASE',label:'Database / Key',placeholder:'evento_moneda'},{key:'AMOUNT',label:'Cantidad',placeholder:'100'}]},
+  {label:'SaveData: Sumar global', type:'console', value:'savedata global BASE add AMOUNT', fields:[{key:'BASE',label:'Base / Key',placeholder:'paises'},{key:'AMOUNT',label:'Cantidad',placeholder:'1'}]},
+  {label:'SaveData: Restar global', type:'console', value:'savedata global BASE subtract AMOUNT', fields:[{key:'BASE',label:'Base / Key',placeholder:'paises'},{key:'AMOUNT',label:'Cantidad',placeholder:'1'}]},
+  {label:'Kes: Meta set', type:'kes', value:'meta set "KEY" to "VALUE"', fields:[{key:'KEY',label:'Meta Key',placeholder:'mi_variable'},{key:'VALUE',label:'Valor',placeholder:'%player_name%'}]},
+  {label:'Kes: Meta add (numero)', type:'kes', value:'meta add "KEY" AMOUNT', fields:[{key:'KEY',label:'Meta Key',placeholder:'mi_variable'},{key:'AMOUNT',label:'Cantidad',placeholder:'1'}]},
+  {label:'Kes: Meta subtract (numero)', type:'kes', value:'meta subtract "KEY" AMOUNT', fields:[{key:'KEY',label:'Meta Key',placeholder:'mi_variable'},{key:'AMOUNT',label:'Cantidad',placeholder:'1'}]},
+  {label:'Tell: Mensaje al jugador', type:'tell', value:'MSG', fields:[{key:'MSG',label:'Mensaje',placeholder:'&a¡Compra exitosa!'}]},
+  {label:'Sound: Sonido', type:'sound', value:'SOUND_NAME-VOLUME-PITCH', fields:[{key:'SOUND_NAME',label:'Sonido',placeholder:'ENTITY_EXPERIENCE_ORB_PICKUP'},{key:'VOLUME',label:'Volumen',placeholder:'1.0'},{key:'PITCH',label:'Pitch',placeholder:'1.0'}]},
+  {label:'Title: Titulo en pantalla', type:'title', value:'TITULO\nSUBTITULO', fields:[{key:'TITULO',label:'Titulo',placeholder:'&6¡Felicidades!'},{key:'SUBTITULO',label:'Subtitulo',placeholder:'&7Has ganado el premio'}]},
+  {label:'Open: Abrir otro menu', type:'open', value:'NOMBRE_MENU', fields:[{key:'NOMBRE_MENU',label:'Menu',placeholder:'mi_menu'}]},
+  {label:'Set Page: Cambiar pagina', type:'set-page', value:'PAGE', fields:[{key:'PAGE',label:'Pagina',placeholder:'2'}]},
+  {label:'Close: Cerrar menu', type:'close', value:'', fields:[]},
+  {label:'Refresh: Refrescar menu', type:'refresh', value:'', fields:[]},
+  {label:'FUNCTION: Funcion custom', type:'FUNCTION', value:'NOMBRE_FUNCION', fields:[{key:'NOMBRE_FUNCION',label:'Funcion',placeholder:'executePayout'}]},
+];
+
+function buildActionFromTemplate(tplIdx, fields){
+  const tpl = ACTION_TEMPLATES[tplIdx];
+  if(!tpl || !tpl.fields) return tpl ? tpl.value : '';
+  let val = tpl.value;
+  const sorted = [...tpl.fields].sort((a,b)=>b.key.length-a.key.length);
+  sorted.forEach(f=>{
+    const v = fields[f.key] || f.placeholder || '';
+    val = val.split(f.key).join(v);
+  });
+  return val;
+}
+
+function buildActionTemplateDropdown(selectedIdx){
+  let html='<option value="">-- Plantilla --</option>';
+  ACTION_TEMPLATES.forEach((t,idx)=>{
+    const sel=idx===selectedIdx?'selected':'';
+    html+=`<option value="${idx}" ${sel}>${t.label}</option>`;
+  });
+  return html;
+}
+
+function onActionTemplateChange(i, val){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  if(val===''||val==null){ buttons[activeBtnId].actions[i]._tplIdx=-1; renderActions(); markDirty(); return; }
+  const tplIdx = parseInt(val);
+  if(tplIdx<0||tplIdx>=ACTION_TEMPLATES.length) return;
+  const tpl = ACTION_TEMPLATES[tplIdx];
+  const act = buttons[activeBtnId].actions[i];
+  act._tplIdx = tplIdx;
+  act.type = tpl.type;
+  act.afields = {};
+  tpl.fields.forEach(f=>{ act.afields[f.key] = f.placeholder; });
+  act.value = buildActionFromTemplate(tplIdx, act.afields);
+  renderActions();
+  markDirty();
+}
+
+function updateActionField(i, fieldKey, val){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  const act = buttons[activeBtnId].actions[i];
+  if(!act.afields) act.afields={};
+  act.afields[fieldKey]=val;
+  if(act._tplIdx>=0){
+    act.value = buildActionFromTemplate(act._tplIdx, act.afields);
+  }
+  markDirty();
+}
+
+function addAction(){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  buttons[activeBtnId].actions.push({type:'console',value:'eco give %player_name% 1000',afields:{},_tplIdx:0});
+  renderActions();
+  markDirty();
+}
+
+function removeAction(i){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  buttons[activeBtnId].actions.splice(i,1);
+  renderActions();
+  markDirty();
+}
+
+function updateAction(i,field,val){
+  if(!activeBtnId||!buttons[activeBtnId]) return;
+  buttons[activeBtnId].actions[i][field]=val;
+  if(field==='type'&&(val==='close'||val==='refresh')) buttons[activeBtnId].actions[i].value='';
+  if(field==='type') buttons[activeBtnId].actions[i]._tplIdx=-1;
+  markDirty();
+}
+
+function renderActions(){
+  if(!activeBtnId||!buttons[activeBtnId]){
+    document.getElementById('actionList').innerHTML='';
+    return;
+  }
+  const acts = buttons[activeBtnId].actions;
+  if(acts.length===0){
+    document.getElementById('actionList').innerHTML='<p style="color:#484f58;font-size:.8rem;text-align:center;padding:10px">Sin acciones</p>';
+    return;
+  }
+  let html='';
+  acts.forEach((a,i)=>{
+    if(a._tplIdx===undefined) a._tplIdx=-1;
+    if(!a.afields) a.afields={};
+    const tplIdx = a._tplIdx;
+    const tpl = tplIdx>=0 ? ACTION_TEMPLATES[tplIdx] : null;
+    // Template dropdown
+    html+=`<div style="margin-bottom:4px"><select onchange="onActionTemplateChange(${i},this.value)" style="font-size:.75rem">${buildActionTemplateDropdown(tplIdx>=0?tplIdx:-1)}</select></div>`;
+    // Type + value row
+    let typeOpts=ACTION_TYPES.map(t=>`<option value="${t}" ${a.type===t?'selected':''}>${t}</option>`).join('');
+    const noVal = a.type==='close'||a.type==='refresh';
+    let fieldsHtml='';
+    if(tpl && tpl.fields.length>0){
+      fieldsHtml+='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">';
+      tpl.fields.forEach(f=>{
+        const val = a.afields[f.key] || '';
+        const needsFmt = ['MSG','TITULO','SUBTITULO'].includes(f.key);
+        const fieldInputId = 'actField_'+i+'_'+f.key;
+        if(needsFmt){
+          fieldsHtml+=`<div style="flex:1;min-width:120px"><label style="font-size:.6rem;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;display:block">${f.label}</label><div style="display:flex;gap:4px;align-items:center"><input type="text" id="${fieldInputId}" value="${escHtml(val)}" placeholder="${escHtml(f.placeholder)}" oninput="updateActionField(${i},'${f.key}',this.value)" style="font-size:.78rem;padding:5px 7px;flex:1">${buildFmtPopupHtml(fieldInputId, false)}</div></div>`;
+        } else {
+          fieldsHtml+=`<div style="flex:1;min-width:120px"><label style="font-size:.6rem;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;display:block">${f.label}</label><input type="text" value="${escHtml(val)}" placeholder="${escHtml(f.placeholder)}" oninput="updateActionField(${i},'${f.key}',this.value)" style="font-size:.78rem;padding:5px 7px"></div>`;
+        }
+      });
+      fieldsHtml+='</div>';
+    }
+    const valInput = noVal
+      ? '<span style="color:#484f58;font-size:.75rem;font-style:italic;padding:7px 9px">(sin parametros)</span>'
+      : tpl
+        ? `<input type="text" value="${escHtml(a.value)}" style="color:#484f58;font-style:italic" title="Valor generado automaticamente por la plantilla" readonly>`
+        : `<input type="text" value="${escHtml(a.value)}" oninput="updateAction(${i},'value',this.value)">`;
+    html+=`<div class="action-row">
+      <select onchange="updateAction(${i},'type',this.value);renderActions()">${typeOpts}</select>
+      ${valInput}
+      <button class="btn btn-sm btn-danger" onclick="removeAction(${i})">&#10005;</button>
+    </div>${fieldsHtml}`;
+  });
+  document.getElementById('actionList').innerHTML=html;
+}
+
+// ===== TABS =====
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='yaml') generateYamlPreview();
+}
+
+// ===== YAML GENERATOR =====
+function markDirty(){
+  dirty=true;
+  saveButtonFromEditor();
+  updateLiveYaml();
+}
+
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function yamlStr(s){
+  if(!s) return "''";
+  if(s.includes("'")) return `"${s}"`;
+  if(s.includes(':')||s.includes('#')||s.includes('{')||s.includes('[')) return `'${s}'`;
+  return `'${s}'`;
+}
+
+// Serialize action list to YAML, handling nested conditions
+function serializeActionList(actions, indent){
+  let y = '';
+  const pad = ' '.repeat(indent);
+  actions.forEach(a=>{
+    if(a.type === '_condition'){
+      // Nested condition
+      y += `${pad}- condition: ${yamlStr(a.condition)}\n`;
+      if(a.actions && a.actions.length > 0){
+        y += `${pad}  actions:\n`;
+        y += serializeActionList(a.actions, indent + 4);
+      }
+      if(a.deny && a.deny.length > 0){
+        y += `${pad}  deny:\n`;
+        y += serializeActionList(a.deny, indent + 4);
+      }
+    } else {
+      // Regular action
+      if(a.type==='FUNCTION') y += `${pad}- 'FUNCTION: ${a.value}'\n`;
+      else if(a.type==='open') y += `${pad}- 'open: ${a.value}'\n`;
+      else if(a.type==='close'||a.type==='refresh') y += `${pad}- '${a.type}'\n`;
+      else y += `${pad}- '${a.type}: ${a.value}'\n`;
+    }
+  });
+  return y;
+}
+
+function generateYaml(){
+  let y = '';
+  const title = document.getElementById('cfgTitle').value||'&8&lMENU';
+  const cmd = document.getElementById('cfgCommand').value||'(?i) menu?';
+  const delay = document.getElementById('cfgClickDelay').value||'200';
+  const onOpen = document.getElementById('cfgOnOpen').value.trim();
+  const onClose = document.getElementById('cfgOnClose').value.trim();
+
+  y += `Title: ${yamlStr(title)}\n\n`;
+
+  // Shape
+  y += 'Shape:\n  -\n';
+  shape.forEach(row=>{
+    y += `    - '${row.join('')}'\n`;
+  });
+  y += '\n';
+
+  y += 'Options:\n';
+  y += `  Min-Click-Delay: ${delay}\n\n`;
+
+  y += 'Bindings:\n  Commands:\n';
+  y += `    - '${cmd}'\n\n`;
+
+  // Events
+  if(onOpen||onClose){
+    y += 'Events:\n';
+    if(onOpen){
+      y += '  Open:\n';
+      onOpen.split('\n').forEach(l=>{if(l.trim()) y += `    - '${l.trim()}'\n`;});
+    }
+    if(onClose){
+      y += '  Close:\n';
+      onClose.split('\n').forEach(l=>{if(l.trim()) y += `    - '${l.trim()}'\n`;});
+    }
+    y += '\n';
+  }
+
+  // Buttons
+  y += 'Buttons:\n\n';
+  const ids = Object.keys(buttons).sort();
+  ids.forEach(id=>{
+    const b = buttons[id];
+    y += `  '${id}':\n`;
+    if(b.update>0) y += `    update: ${b.update}\n`;
+    y += '    display:\n';
+    y += `      mat: '${b.mat}'\n`;
+    if(b.mat.toUpperCase()==='PLAYER_HEAD' && b.headTexture){
+      y += `      texture: ${b.headTexture}\n`;
+    }
+    y += `      name: ${yamlStr(b.name)}\n`;
+    if(b.lore && b.lore.trim()){
+      y += '      lore:\n';
+      b.lore.split('\n').forEach(line=>{
+        y += `        - ${yamlStr(line)}\n`;
+      });
+    }
+    if(b.icons && b.icons.length>0){
+      y += '    icons:\n';
+      b.icons.forEach(ic=>{
+        y += `      - pri: ${ic.pri}\n`;
+        y += `        condition: ${yamlStr(ic.condition)}\n`;
+        y += '        display:\n';
+        y += `          mat: '${ic.mat}'\n`;
+        y += `          name: ${yamlStr(ic.name)}\n`;
+        if(ic.lore && ic.lore.trim()){
+          y += '          lore:\n';
+          ic.lore.split('\n').forEach(line=>{
+            y += `            - ${yamlStr(line)}\n`;
+          });
+        }
+        if((ic.actions && ic.actions.length>0) || (ic.deny && ic.deny.length>0)){
+          y += '        actions:\n';
+          if(ic.actions && ic.actions.length>0){
+            y += '          all:\n';
+            y += serializeActionList(ic.actions, 12);
+          }
+          if(ic.deny && ic.deny.length>0){
+            y += '          deny:\n';
+            y += serializeActionList(ic.deny, 12);
+          }
+        }
+      });
+    }
+    if(b.actions && b.actions.length>0){
+      y += '    actions:\n      all:\n';
+      b.actions.forEach(a=>{
+        if(a.type==='FUNCTION') y += `        - 'FUNCTION: ${a.value}'\n`;
+        else if(a.type==='open') y += `        - 'open: ${a.value}'\n`;
+        else if(a.type==='close'||a.type==='refresh') y += `        - '${a.type}'\n`;
+        else y += `        - '${a.type}: ${a.value}'\n`;
+      });
+    }
+    y += '\n';
+  });
+
+  return y;
+}
+
+function highlightYaml(y){
+  return y
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^(\s*)([\w'-]+)(:)/gm,'$1<span class="k">$2</span>$3')
+    .replace(/'([^']*)'/g,"'<span class=\"v\">$1</span>'")
+    .replace(/#(.*)$/gm,'<span class="c">#$1</span>');
+}
+
+function generateYamlPreview(){
+  const y = generateYaml();
+  document.getElementById('yamlPreview').innerHTML = highlightYaml(y);
+}
+
+function updateLiveYaml(){
+  const y = generateYaml();
+  document.getElementById('yamlLive').innerHTML = highlightYaml(y);
+}
+
+function copyYaml(){
+  navigator.clipboard.writeText(generateYaml());
+}
+
+function exportYaml(){
+  const blob = new Blob([generateYaml()],{type:'text/yaml'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'menu.yml';
+  a.click();
+}
+
+// ===== DRAG RESIZE =====
+(function(){
+  const handle = document.getElementById('dragHandle');
+  const leftPanel = document.getElementById('leftPanel');
+  let dragging = false;
+  handle.addEventListener('mousedown', function(e){
+    dragging = true;
+    handle.classList.add('dragging');
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', function(e){
+    if(!dragging) return;
+    const newWidth = Math.max(200, Math.min(500, e.clientX));
+    leftPanel.style.flexBasis = newWidth + 'px';
+  });
+  document.addEventListener('mouseup', function(){
+    if(dragging){
+      dragging = false;
+      handle.classList.remove('dragging');
+    }
+  });
+})();
+
+// ===== YAML TOGGLE =====
+let yamlVisible = false;
+function toggleYaml(){
+  yamlVisible = !yamlVisible;
+  const hdr = document.getElementById('yamlSectionHdr');
+  const body = document.getElementById('yamlSectionBody');
+  const tabContent = document.querySelector('.tab-content');
+  const btn = document.getElementById('yamlToggleBtn');
+  if(yamlVisible){
+    hdr.style.display = 'flex';
+    body.classList.add('show');
+    tabContent.style.maxHeight = '50%';
+    tabContent.style.overflow = 'hidden';
+    btn.classList.remove('btn-primary');
+    btn.classList.add('btn-danger');
+    updateLiveYaml();
+  } else {
+    hdr.style.display = 'none';
+    body.classList.remove('show');
+    tabContent.style.maxHeight = '';
+    tabContent.style.overflow = '';
+    btn.classList.remove('btn-danger');
+    btn.classList.add('btn-primary');
+  }
+}
+
+// ===== INIT =====
+initShape();
+buildCharPicker();
+document.getElementById('fmtPopupAnchor_btnName').innerHTML = buildFmtPopupHtml('btnName', true);
+document.getElementById('fmtPopupAnchor_btnLore').innerHTML = buildFmtPopupHtml('btnLore', true);
+toggleHeadTexture();
+updateLiveYaml();
+</script>
+</body>
+</html>
