@@ -3,33 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <title>MineLatino | Editores</title>
+
     <style>
         body {
             margin: 0;
-            background: #0b0b0b;
+            background: #0a0a0a;
             font-family: Arial, sans-serif;
             color: #fff;
         }
 
+        /* HEADER */
         header {
-            background: #111;
-            padding: 20px 40px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(180deg, #111 0%, #0a0a0a 100%);
             border-bottom: 2px solid #222;
         }
 
         header img {
-            height: 70px;
+            height: 120px;
+            filter: drop-shadow(0px 0px 12px #ffae00);
         }
 
         header h1 {
-            font-size: 32px;
-            margin: 0;
+            margin-top: 20px;
+            font-size: 36px;
             font-weight: 700;
+            color: #ffae00;
+            text-shadow: 0px 0px 10px #ffae00;
         }
 
+        /* GRID */
         .container {
             max-width: 1100px;
             margin: 50px auto;
@@ -39,6 +43,7 @@
             gap: 30px;
         }
 
+        /* CARDS */
         .card {
             background: #161616;
             padding: 25px;
@@ -47,18 +52,20 @@
             text-decoration: none;
             color: #fff;
             transition: 0.25s;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.4);
         }
 
         .card:hover {
             transform: translateY(-6px);
-            border-color: #ffaa00;
+            border-color: #ffae00;
             background: #1f1f1f;
+            box-shadow: 0px 0px 15px #ffae00;
         }
 
         .card h2 {
             margin: 0 0 10px;
             font-size: 22px;
-            color: #ffaa00;
+            color: #ffae00;
         }
 
         .card p {
@@ -68,6 +75,37 @@
         }
     </style>
 </head>
+
 <body>
 
     <header>
+        <img src="ML_logo.png" alt="MineLatino Logo">
+        <h1>MineLatino | Editores</h1>
+    </header>
+
+    <div class="container">
+
+        <a class="card" href="trmenu_editor.html">
+            <h2>TRMenu Editor</h2>
+            <p>Editor de menús</p>
+        </a>
+
+        <a class="card" href="deluxetags_editor.html">
+            <h2>DeluxeTags Editor</h2>
+            <p>Editor de tags</p>
+        </a>
+
+        <a class="card" href="mmoitems_editor.html">
+            <h2>MMOItems Editor</h2>
+            <p>Editor de items</p>
+        </a>
+
+        <a class="card" href="mines_calculator.html">
+            <h2>Mines Calculator</h2>
+            <p>Calculadora de minas</p>
+        </a>
+
+    </div>
+
+</body>
+</html>
