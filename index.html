@@ -7,93 +7,99 @@
     <style>
         body {
             margin: 0;
-            background: #0b0b0b;
             font-family: Arial, sans-serif;
+            background: url("img/background.png") no-repeat center center fixed;
+            background-size: cover;
             color: #fff;
         }
 
         header {
             text-align: center;
-            padding: 40px 20px;
-            background: #111;
-            border-bottom: 2px solid #222;
+            padding: 50px 20px;
+            background: rgba(0,0,0,0.55);
+            border-bottom: 1px solid #222;
         }
 
         header img {
             height: 120px;
-            filter: drop-shadow(0px 0px 12px #ffae00);
+            filter: drop-shadow(0px 0px 10px rgba(255, 170, 0, 0.5));
+            cursor: pointer;
         }
 
         header h1 {
             margin-top: 20px;
-            font-size: 36px;
+            font-size: 40px;
             font-weight: 700;
-            color: #ffae00;
-            text-shadow: 0px 0px 10px #ffae00;
+            color: #ffb300;
+            letter-spacing: 1px;
         }
 
         .container {
             max-width: 1200px;
-            margin: 50px auto;
+            margin: 60px auto;
             padding: 0 20px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
             gap: 40px;
         }
 
         .card {
-            background: #161616;
-            border-radius: 14px;
+            background: rgba(26,26,26,0.85);
+            border-radius: 18px;
             overflow: hidden;
-            border: 2px solid #222;
-            box-shadow: 0px 0px 12px rgba(0,0,0,0.4);
+            border: 1px solid #2a2a2a;
+            box-shadow: 0px 4px 14px rgba(0,0,0,0.4);
             transition: 0.25s;
+            cursor: pointer;
         }
 
         .card:hover {
-            transform: translateY(-8px);
-            border-color: #ffae00;
-            box-shadow: 0px 0px 18px #ffae00;
+            transform: translateY(-10px);
+            box-shadow: 0px 10px 25px rgba(255, 170, 0, 0.35);
+            border-color: #ffb300;
         }
 
         .card img {
             width: 100%;
-            height: 180px;
+            height: 260px;
             object-fit: cover;
+            object-position: center;
+            background: #111;
+            padding: 0;
         }
 
         .card-content {
-            padding: 20px;
+            padding: 25px;
         }
 
         .card-content h2 {
-            margin: 0 0 10px;
-            font-size: 24px;
-            color: #ffae00;
+            margin: 0 0 12px;
+            font-size: 26px;
+            color: #ffb300;
         }
 
         .card-content p {
-            margin: 0 0 20px;
+            margin: 0 0 25px;
             color: #ccc;
             font-size: 15px;
-            line-height: 1.4;
+            line-height: 1.6;
         }
 
         .btn {
             display: inline-block;
-            padding: 12px 20px;
-            background: #ffae00;
+            padding: 14px 22px;
+            background: #ffb300;
             color: #000;
             font-weight: bold;
-            border-radius: 8px;
+            border-radius: 12px;
             text-decoration: none;
             transition: 0.25s;
         }
 
         .btn:hover {
             background: #ffd24d;
-            transform: scale(1.05);
-            box-shadow: 0px 0px 10px #ffae00;
+            transform: scale(1.07);
+            box-shadow: 0px 0px 12px rgba(255, 170, 0, 0.6);
         }
     </style>
 </head>
@@ -101,7 +107,9 @@
 <body>
 
     <header>
-        <img src="ML_logo.png" alt="MineLatino Logo">
+        <a href="https://minelatino.shop" target="_blank">
+            <img src="img/ML_logo.png" alt="MineLatino Logo">
+        </a>
         <h1>MineLatino | Editores</h1>
     </header>
 
@@ -129,7 +137,7 @@
             <img src="img/mmoitems.png" alt="MMOItems Editor">
             <div class="card-content">
                 <h2>MMOItems Editor</h2>
-                <p>Crea items avanzados con atributos, habilidades y configuraciones.</p>
+                <p>Crea ítems avanzados con atributos, habilidades y configuraciones.</p>
                 <a class="btn" href="mmoitems_editor.html">Abrir Editor</a>
             </div>
         </div>
