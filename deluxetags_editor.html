@@ -131,6 +131,88 @@ textarea{resize:vertical;min-height:60px;font-family:'Cascadia Code','Fira Code'
 .sc-toggle{height:22px;padding:0 8px;border:1px solid #30363d;border-radius:3px;background:#30363d;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#c9d1d9;transition:all .15s;flex-shrink:0}
 .sc-toggle:hover{border-color:#58a6ff;color:#58a6ff}
 .sc-toggle.active{background:#1a3a5c;border-color:#58a6ff;color:#58a6ff}
+/* ===========================
+   MOBILE / RESPONSIVE
+=========================== */
+
+@media (max-width: 900px){
+
+body{
+    overflow:auto;
+}
+
+.app{
+    flex-direction:column;
+    height:auto;
+    min-height:100vh;
+}
+
+#leftPanel{
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    height:auto;
+}
+
+.drag-handle{
+    display:none;
+}
+
+.toolbar{
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.tab-bar{
+    overflow-x:auto;
+    white-space:nowrap;
+}
+
+.tab{
+    flex:0 0 auto;
+}
+
+.tab-content{
+    padding:10px;
+}
+
+.row{
+    flex-direction:column;
+}
+
+.row>*{
+    width:100%;
+}
+
+.mat-modal,
+.fmt-modal,
+.emoji-modal{
+    width:95vw;
+    max-width:95vw;
+    height:90vh;
+    max-height:90vh;
+}
+
+input,
+select,
+textarea,
+.btn{
+    font-size:16px;
+}
+
+.item-preview{
+    padding:12px;
+}
+
+.panel-body{
+    overflow:visible;
+}
+
+.yaml-preview{
+    max-height:none;
+}
+
+}
 </style>
 </head>
 <body>
