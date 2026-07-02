@@ -3172,7 +3172,7 @@ function renderProjectHistory(){
     html += `<div class="proj-card-actions">`;
     html += `<button class="btn btn-primary" onclick="loadProjectFromHistory('${p.id}')" title="Cargar">&#128194; Cargar</button>`;
     html += `<button class="btn btn-secondary" onclick="duplicarProyecto('${p.id}')" title="Duplicar">&#128203;</button>`;
-    html += `<button class="btn btn-danger" onclick="if(confirm('Eliminar \''+${JSON.stringify(p.name)}+'\'?'))eliminarProyecto('${p.id}')" title="Eliminar">&#10005;</button>`;
+    html += `<button class="btn btn-danger" onclick="if(confirm('Eliminar este proyecto?'))eliminarProyecto('${p.id}')" title="Eliminar">&#10005;</button>`;
     html += `</div></div>`;
   });
   list.innerHTML = html;
