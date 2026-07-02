@@ -294,6 +294,88 @@ textarea{resize:vertical;min-height:60px;font-family:'Cascadia Code','Fira Code'
 .mc-actions-bar{margin-top:12px;display:flex;gap:8px;justify-content:flex-end;font-family:system-ui,sans-serif}
 .mc-actions-bar button{padding:5px 14px;border-radius:4px;font-size:.75rem;cursor:pointer;border:1px solid #30363d;background:#21262d;color:#c9d1d9;transition:all .15s}
 .mc-actions-bar button:hover{background:#30363d;border-color:#58a6ff}
+/* ===========================
+   MOBILE / RESPONSIVE
+=========================== */
+
+@media (max-width: 900px){
+
+body{
+    overflow:auto;
+}
+
+.app{
+    flex-direction:column;
+    height:auto;
+    min-height:100vh;
+}
+
+#leftPanel{
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    height:auto;
+}
+
+.drag-handle{
+    display:none;
+}
+
+.toolbar{
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.tab-bar{
+    overflow-x:auto;
+    white-space:nowrap;
+}
+
+.tab{
+    flex:0 0 auto;
+}
+
+.tab-content{
+    padding:10px;
+}
+
+.row{
+    flex-direction:column;
+}
+
+.row>*{
+    width:100%;
+}
+
+.mat-modal,
+.fmt-modal,
+.emoji-modal{
+    width:95vw;
+    max-width:95vw;
+    height:90vh;
+    max-height:90vh;
+}
+
+input,
+select,
+textarea,
+.btn{
+    font-size:16px;
+}
+
+.item-preview{
+    padding:12px;
+}
+
+.panel-body{
+    overflow:visible;
+}
+
+.yaml-preview{
+    max-height:none;
+}
+
+}
 </style>
 </head>
 <body>
