@@ -2514,10 +2514,7 @@ function renderDetailModal(charId){
   const color = ITEM_COLORS[displayMat] || '#888';
   const wikiUrl = getWikiIconUrl(displayMat);
   let tooltipHtml = '<div class="mc-tooltip">';
-  tooltipHtml += '<div style="display:flex;align-items:center;gap:8px">';
-  tooltipHtml += `<img class="mc-item-icon" src="${wikiUrl}" onerror="wikiImgError(this)" style="image-rendering:pixelated;display:inline-block;width:28px;height:28px;background:#1a1a2e;border-radius:2px"><div class="mc-item-icon" style="background:${color};display:none"></div>`;
-  tooltipHtml += `<span class="mc-item-name">${renderColoredText(displayName || charId)}</span>`;
-  tooltipHtml += '</div>';
+  tooltipHtml += `<div class="mc-item-name">${renderColoredText(displayName || charId)}</div>`;
   if(displayLore){
     tooltipHtml += '<div class="mc-item-lore">';
     displayLore.split('\n').forEach(line=>{
@@ -2839,9 +2836,11 @@ function generateYaml(){
     y += `  '${id}':\n`;
     if(b.update>0) y += `    update: ${b.update}\n`;
     y += '    display:\n';
-    y += `      mat: '${b.mat}'\n`;
+    // Combine PLAYER_HEAD with texture into 'head:VALUE' format
     if(b.mat.toUpperCase()==='PLAYER_HEAD' && b.headTexture){
-      y += `      texture: ${b.headTexture}\n`;
+      y += `      mat: 'head:${b.headTexture}'\n`;
+    } else {
+      y += `      mat: '${b.mat}'\n`;
     }
     y += `      name: ${yamlStr(b.name)}\n`;
     if(b.lore && b.lore.trim()){
