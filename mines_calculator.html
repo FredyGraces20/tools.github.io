@@ -59,6 +59,88 @@ td.mult{color:#00d4ff;font-weight:600}
 .copy-btn:hover{background:#00d4ff;color:#0a0a1a}
 .insane-badge{display:inline-block;background:#dc2626;color:#fff;font-size:.6rem;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle}
 @media(max-width:700px){.top-grid,.param-grid,.summary-grid{grid-template-columns:1fr}.diff-btns{grid-template-columns:repeat(2,1fr)}}
+/* ===========================
+   MOBILE / RESPONSIVE
+=========================== */
+
+@media (max-width: 900px){
+
+body{
+    overflow:auto;
+}
+
+.app{
+    flex-direction:column;
+    height:auto;
+    min-height:100vh;
+}
+
+#leftPanel{
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    height:auto;
+}
+
+.drag-handle{
+    display:none;
+}
+
+.toolbar{
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.tab-bar{
+    overflow-x:auto;
+    white-space:nowrap;
+}
+
+.tab{
+    flex:0 0 auto;
+}
+
+.tab-content{
+    padding:10px;
+}
+
+.row{
+    flex-direction:column;
+}
+
+.row>*{
+    width:100%;
+}
+
+.mat-modal,
+.fmt-modal,
+.emoji-modal{
+    width:95vw;
+    max-width:95vw;
+    height:90vh;
+    max-height:90vh;
+}
+
+input,
+select,
+textarea,
+.btn{
+    font-size:16px;
+}
+
+.item-preview{
+    padding:12px;
+}
+
+.panel-body{
+    overflow:visible;
+}
+
+.yaml-preview{
+    max-height:none;
+}
+
+}
 </style>
 </head>
 <body>
