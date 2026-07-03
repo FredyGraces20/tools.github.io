@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TrMenu Menu Editor</title>
+<title>TrMenu Visual Editor</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0d1117;color:#c9d1d9;font-family:'Segoe UI',system-ui,sans-serif;height:100vh;overflow:hidden}
@@ -55,7 +55,7 @@ textarea{resize:vertical;min-height:60px;font-family:'Cascadia Code','Fira Code'
 .multi-toolbar .btn{padding:3px 8px;font-size:.7rem}
 
 /* Button List */
-.btn-list{flex:1;overflow-y:auto}
+.btn-list{overflow-y:auto;max-height:400px;border:1px solid #21262d;border-radius:6px;margin-top:8px}
 .btn-item{padding:10px 12px;border-bottom:1px solid #21262d;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
 .btn-item:hover{background:#1a2332}
 .btn-item.active{background:#1a2332;border-left:3px solid #58a6ff}
@@ -72,9 +72,12 @@ textarea{resize:vertical;min-height:60px;font-family:'Cascadia Code','Fira Code'
 .tab{padding:10px 18px;font-size:.8rem;color:#8b949e;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
 .tab:hover{color:#c9d1d9}
 .tab.active{color:#58a6ff;border-bottom-color:#58a6ff}
-.tab-content{flex:1;overflow-y:auto;padding:16px}
+.tab-content{flex:1;overflow:hidden;padding:16px}
 .tab-page{display:none}
 .tab-page.active{display:block}
+#tab-functions.active{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+#tab-yaml.active{overflow-y:auto;height:100%}
+#tab-config.active,#tab-shape.active,#tab-button.active,#tab-conditions.active,#tab-actions.active,#tab-preview.active{overflow-y:auto;height:100%}
 
 /* Properties */
 .prop-section{margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #21262d}
@@ -116,7 +119,7 @@ textarea{resize:vertical;min-height:60px;font-family:'Cascadia Code','Fira Code'
 .action-row .btn{flex-shrink:0}
 
 /* YAML Preview */
-.yaml-preview{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:14px;font-family:'Cascadia Code','Fira Code',monospace;font-size:.78rem;line-height:1.6;white-space:pre;overflow:auto;color:#7ee787;max-height:calc(100vh - 140px)}
+.yaml-preview{flex:1;overflow:auto;padding:14px;font-family:'Cascadia Code','Fira Code',monospace;font-size:.78rem;line-height:1.6;white-space:pre-wrap;word-break:break-all;color:#c9d1d9;background:#0d1117}
 .yaml-preview .k{color:#ff7b72}
 .yaml-preview .v{color:#a5d6ff}
 .yaml-preview .c{color:#484f58}
@@ -132,9 +135,6 @@ textarea{resize:vertical;min-height:60px;font-family:'Cascadia Code','Fira Code'
 .empty-state .icon{font-size:2.5rem;margin-bottom:10px}
 .empty-state p{font-size:.85rem}
 .drag-handle{width:5px;background:#21262d;cursor:col-resize;flex-shrink:0;transition:background .15s}.drag-handle:hover,.drag-handle.dragging{background:#58a6ff}
-.yaml-section-hdr{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-bottom:1px solid #21262d;flex-shrink:0}
-.yaml-section-body{flex:1;overflow:auto;padding:0;display:none}
-.yaml-section-body.show{display:block}
 
 /* Material Picker Modal */
 .mat-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;display:none;align-items:center;justify-content:center}
@@ -295,8 +295,98 @@ textarea{resize:vertical;min-height:60px;font-family:'Cascadia Code','Fira Code'
 .mc-actions-bar button{padding:5px 14px;border-radius:4px;font-size:.75rem;cursor:pointer;border:1px solid #30363d;background:#21262d;color:#c9d1d9;transition:all .15s}
 .mc-actions-bar button:hover{background:#30363d;border-color:#58a6ff}
 /* ===========================
+   FUNCTIONS TAB - IDE
+=========================== */
+.func-layout{display:flex;flex:1;min-height:0;gap:0;overflow:hidden}
+.func-sidebar{width:220px;min-width:180px;border-right:1px solid #21262d;display:flex;flex-direction:column;flex-shrink:0;background:#0d1117;overflow:hidden;position:relative;z-index:3}
+.func-sidebar-hdr{padding:10px 12px;border-bottom:1px solid #21262d;display:flex;justify-content:space-between;align-items:center;gap:6px;overflow:hidden;min-width:0}
+.func-sidebar-hdr span{font-size:.7rem;text-transform:uppercase;letter-spacing:1px;color:#8b949e;font-weight:600}
+.func-list{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px;min-width:0}
+.func-card{padding:8px 10px;border:1px solid #21262d;border-radius:6px;margin-bottom:5px;cursor:pointer;transition:all .12s;background:#161b22}
+.func-card:hover{border-color:#30363d;background:#1c2333}
+.func-card.active{border-color:#58a6ff;background:#1a2332}
+.func-card-name{font-size:.78rem;font-weight:600;color:#c9d1d9;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.func-card-meta{font-size:.62rem;color:#484f58;display:flex;gap:6px;align-items:center}
+.func-card-cat{background:#21262d;padding:1px 5px;border-radius:3px;font-size:.58rem;color:#8b949e}
+.func-card-del{margin-left:auto;background:none;border:none;color:#484f58;cursor:pointer;font-size:.7rem;padding:2px 4px;border-radius:3px}
+.func-card-del:hover{color:#f85149;background:#2a1515}
+.func-sidebar-footer{padding:8px 10px;border-top:1px solid #21262d;display:flex;flex-direction:column;gap:5px;overflow:hidden;min-width:0}
+.func-cat-filter{font-size:.7rem;padding:4px 8px;background:#161b22;border:1px solid #21262d;border-radius:4px;color:#c9d1d9;cursor:pointer}
+.func-cat-filter:hover{border-color:#30363d}
+.func-cat-filter.active{border-color:#58a6ff;color:#58a6ff}
+.func-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;position:relative;z-index:2}
+.func-empty{display:flex;align-items:center;justify-content:center;height:100%;color:#484f58;font-size:.85rem;flex-direction:column;gap:8px}
+.func-editor-hdr{padding:10px 14px;border-bottom:1px solid #21262d;display:flex;gap:10px;align-items:center;flex-wrap:wrap;flex-shrink:0}
+.func-editor-hdr label{margin:0;font-size:.65rem}
+.func-editor-hdr input{padding:5px 8px;font-size:.78rem}
+.func-editor-hdr select{padding:5px 8px;font-size:.78rem}
+.func-editor-toolbar{padding:6px 14px;border-bottom:1px solid #21262d;display:flex;gap:6px;align-items:center;flex-wrap:wrap;flex-shrink:0;background:#0d1117}
+.func-editor-toolbar .btn{padding:4px 10px;font-size:.7rem}
+.func-code-wrap{flex:1;position:relative;overflow:hidden;display:flex;min-width:0}
+.func-code-container{flex:1;position:relative;display:flex;overflow:hidden;min-width:0}
+.func-line-numbers{width:36px;background:#0d1117;border-right:1px solid #21262d;padding:8px 4px;text-align:right;font-family:'Cascadia Code','Fira Code',monospace;font-size:.78rem;line-height:1.5;color:#484f58;overflow:hidden;user-select:none;flex-shrink:0}
+.func-code-area{flex:1;position:relative;overflow:hidden;min-width:0}
+.func-code-area pre,.func-code-area textarea{position:absolute;top:0;left:0;width:100%;height:100%;margin:0;padding:8px 10px;font-family:'Cascadia Code','Fira Code',monospace;font-size:.78rem;line-height:1.5;white-space:pre;overflow:auto;tab-size:2;word-wrap:off}
+.func-code-area pre{pointer-events:none;z-index:1;color:#c9d1d9;background:transparent;border:none}
+.func-code-area textarea{z-index:2;background:transparent;color:transparent;caret-color:#c9d1d9;border:none;resize:none;outline:none;-webkit-text-fill-color:transparent}
+.func-code-area textarea::selection{background:#264f78;color:transparent}
+/* Syntax highlighting tokens */
+.func-code-area .tok-kw{color:#ff7b72}
+.func-code-area .tok-str{color:#a5d6ff}
+.func-code-area .tok-num{color:#79c0ff}
+.func-code-area .tok-cmt{color:#484f58;font-style:italic}
+.func-code-area .tok-fn{color:#d2a8ff}
+.func-code-area .tok-bool{color:#79c0ff}
+.func-code-area .tok-op{color:#ff7b72}
+.func-ref-panel{width:240px;min-width:200px;max-width:240px;border-left:1px solid #21262d;overflow:hidden;flex-shrink:0;background:#0d1117;padding:0;display:flex;flex-direction:column;position:relative;z-index:1}
+.func-ref-panel-inner{flex:1;overflow-y:auto;overflow-x:hidden;min-width:0;max-width:100%}
+.func-ref-panel details{border-bottom:1px solid #21262d;overflow:hidden}
+#funcRefModal details{border-bottom:1px solid #21262d}
+#funcRefModal summary::before{content:'▸';font-size:.6rem;transition:transform .15s}
+#funcRefModal details[open] summary::before{transform:rotate(90deg)}
+#funcRefModal summary:hover{color:#c9d1d9;background:#161b22}
+.func-ref-panel summary{padding:8px 12px;font-size:.72rem;font-weight:600;color:#8b949e;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;list-style:none;display:flex;align-items:center;gap:6px;overflow:hidden;max-width:100%}
+.func-ref-panel summary::before{content:'▸';font-size:.6rem;transition:transform .15s}
+.func-ref-panel details[open] summary::before{transform:rotate(90deg)}
+.func-ref-panel summary:hover{color:#c9d1d9;background:#161b22}
+.func-ref-item{padding:5px 12px 5px 24px;font-size:.7rem;color:#8b949e;cursor:pointer;border-left:2px solid transparent;transition:all .1s;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-sizing:border-box}
+.func-ref-item:hover{color:#58a6ff;background:#161b22;border-left-color:#58a6ff}
+.func-ref-item code{font-family:'Cascadia Code','Fira Code',monospace;font-size:.68rem;color:#d2a8ff;background:#161b22;padding:1px 4px;border-radius:3px;max-width:100%;overflow:hidden;text-overflow:ellipsis;display:inline-block;vertical-align:middle;box-sizing:border-box}
+.func-ref-item .ref-desc{display:block;font-size:.6rem;color:#484f58;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.func-ref-panel *{max-width:100%;box-sizing:border-box}
+.func-dep-info{padding:6px 14px;background:#161b22;border-bottom:1px solid #21262d;font-size:.68rem;color:#8b949e;display:flex;gap:8px;align-items:center;flex-wrap:wrap;flex-shrink:0}
+.func-dep-tag{background:#21262d;padding:2px 6px;border-radius:3px;font-size:.62rem;color:#58a6ff}
+.func-tpl-dropdown,.func-snippet-dropdown{position:relative;display:inline-block}
+.func-tpl-menu,.func-snippet-menu{position:absolute;top:100%;left:0;background:#161b22;border:1px solid #30363d;border-radius:6px;min-width:240px;max-height:300px;overflow-y:auto;z-index:100;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.func-tpl-menu.show,.func-snippet-menu.show{display:block}
+.func-tpl-cat{padding:4px 10px;font-size:.6rem;text-transform:uppercase;letter-spacing:.5px;color:#484f58;font-weight:600;background:#0d1117;position:sticky;top:0}
+.func-tpl-item{padding:6px 12px;font-size:.72rem;color:#c9d1d9;cursor:pointer;border-bottom:1px solid #21262d}
+.func-tpl-item:hover{background:#1a2332;color:#58a6ff}
+.func-tpl-item:last-child{border-bottom:none}
+.func-import-area{width:100%;min-height:80px;font-family:'Cascadia Code','Fira Code',monospace;font-size:.75rem;margin-top:6px}
+.func-validate-ok{color:#3fb950;font-size:.7rem}
+.func-validate-err{color:#f85149;font-size:.7rem}
+/* ===========================
    MOBILE / RESPONSIVE
 =========================== */
+
+/* Logo Button & Dropdown */
+.logo-btn{width:32px;height:32px;border:none;background:none;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;transition:all .15s;flex-shrink:0}
+.logo-btn:hover{background:#21262d;transform:scale(1.1)}
+.logo-btn img{width:28px;height:28px;image-rendering:auto}
+.logo-dropdown{position:absolute;top:100%;left:0;width:220px;background:#161b22;border:1px solid #30363d;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:1000;display:none;overflow:hidden;animation:logoSlideIn .15s ease-out}
+.logo-dropdown.show{display:block}
+@keyframes logoSlideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.logo-dropdown-hdr{padding:10px 14px;border-bottom:1px solid #21262d;display:flex;align-items:center;gap:8px}
+.logo-dropdown-hdr img{width:24px;height:24px}
+.logo-dropdown-hdr span{font-size:.75rem;font-weight:600;color:#58a6ff}
+.logo-dropdown-item{padding:9px 14px;font-size:.8rem;color:#c9d1d9;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s;border-bottom:1px solid #21262d}
+.logo-dropdown-item:hover{background:#1a2332;color:#58a6ff}
+.logo-dropdown-item:last-child{border-bottom:none}
+.logo-dropdown-item .dd-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.logo-dropdown-item .dd-label{flex:1}
+.logo-dropdown-item .dd-shortcut{font-size:.65rem;color:#484f58;font-family:monospace}
+.logo-dropdown-sep{height:1px;background:#21262d;margin:0}
 
 @media (max-width: 900px){
 
@@ -308,17 +398,6 @@ body{
     flex-direction:column;
     height:auto;
     min-height:100vh;
-}
-
-#leftPanel{
-    width:100%!important;
-    max-width:none!important;
-    min-width:0!important;
-    height:auto;
-}
-
-.drag-handle{
-    display:none;
 }
 
 .toolbar{
@@ -375,48 +454,64 @@ textarea,
     max-height:none;
 }
 
+.func-layout{
+    flex-direction:column;
 }
+
+.func-sidebar{
+    width:100%;
+    max-height:200px;
+    border-right:none;
+    border-bottom:1px solid #21262d;
+}
+
+.func-ref-panel{
+    width:100%;
+    border-left:none;
+    border-top:1px solid #21262d;
+    max-height:200px;
+}
+
+}
+
 </style>
 </head>
 <body>
 <div class="app">
-<!-- LEFT PANEL: Shape + Buttons -->
-<div class="panel" id="leftPanel" style="width:300px;min-width:200px;max-width:500px;flex-shrink:0">
-<div class="panel-hdr">Shape <span style="float:right"><input type="number" id="shapeRows" value="6" min="1" max="6" onchange="resizeShape()" style="width:42px;padding:2px 4px;font-size:.75rem;text-align:center"> <button class="btn btn-sm btn-secondary" onclick="selectAllFilled()" style="padding:2px 8px" title="Seleccionar todos los slots llenos">Sel.All</button> <button class="btn btn-sm btn-secondary" onclick="clearShape()" style="padding:2px 8px">Limpiar</button></span></div>
-<div style="padding:8px 12px;border-bottom:1px solid #21262d;flex-shrink:0">
-<div id="shapeGrid" class="shape-grid" style="display:inline-grid;gap:2px"></div>
-<div class="char-picker" id="charPicker" style="margin-top:6px"></div>
-<div class="multi-toolbar" id="multiToolbar">
-<span id="multiCount">0 slots</span>
-<input type="text" id="multiAssignChar" maxlength="1" placeholder="-" title="Caracter a asignar">
-<button class="btn btn-sm btn-primary" onclick="assignToSelected()">Asignar</button>
-<button class="btn btn-sm btn-danger" onclick="clearSelected()">Limpiar</button>
-<button class="btn btn-sm btn-secondary" onclick="deselectAll()">Deseleccionar</button>
-</div>
-</div>
-<div class="panel-hdr">Botones <button class="btn btn-sm btn-primary" style="float:right" onclick="autoDetectButtons()">Auto-Detectar</button></div>
-<div class="btn-list" id="btnList">
-<div class="empty-state"><div class="icon">&#9638;</div><p>Configura el shape y auto-detecta los botones</p></div>
-</div>
-</div>
-<div class="drag-handle" id="dragHandle"></div>
-
 <!-- EDITOR -->
 <div class="center">
 <div class="toolbar">
+<div style="position:relative">
+<button class="logo-btn" onclick="toggleLogoDropdown(event)" title="Menu"><img src="ml_logo.png" alt="ML"></button>
+<div class="logo-dropdown" id="logoDropdown">
+<div class="logo-dropdown-hdr"><img src="ml_logo.png" alt="ML"><span>MineLatino</span></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.com','_blank');closeLogoDropdown()"><span class="dd-icon">&#127760;</span><span class="dd-label">MineLatino</span></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.shop','_blank');closeLogoDropdown()"><span class="dd-icon">&#128722;</span><span class="dd-label">Tienda MineLatino</span></div>
+<div class="logo-dropdown-item" onclick="window.open('http://discord.minelatino.com','_blank');closeLogoDropdown()"><span class="dd-icon">&#128172;</span><span class="dd-label">Discord MineLatino</span></div>
+<div class="logo-dropdown-sep"></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.net/tools/editor/trmenu','_blank');closeLogoDropdown()"><span class="dd-icon">&#9874;</span><span class="dd-label">TrMenu Editor</span></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.net/tools/editor/mmoitems','_blank');closeLogoDropdown()"><span class="dd-icon">&#9876;</span><span class="dd-label">MMOItems Editor</span></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.net/tools/editor/deluxetags','_blank');closeLogoDropdown()"><span class="dd-icon">&#127991;</span><span class="dd-label">Tags Editor</span></div>
+<div class="logo-dropdown-sep"></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.com/herramientas-minecraft-rgb/','_blank');closeLogoDropdown()"><span class="dd-icon">&#127912;</span><span class="dd-label">RGB Gradient</span></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.com/herramientas-discord-tiempo/','_blank');closeLogoDropdown()"><span class="dd-icon">&#128336;</span><span class="dd-label">Discord Tiempo</span></div>
+</div>
+</div>
 <h1 style="margin:0;font-size:.85rem">&#9874; MineLatino | TrMenu Editor</h1>
 <div style="flex:1"></div>
 <button class="btn btn-secondary" onclick="saveProject()">&#128190; Guardar</button>
 <button class="btn btn-secondary" onclick="openProjectHistory()">&#128194; Historial</button>
-<button class="btn btn-primary" id="yamlToggleBtn" onclick="toggleYaml()">&#128196; YAML</button>
 <button class="btn btn-secondary" onclick="exportYaml()">Descargar .yml</button>
 </div>
 <div class="tab-bar">
 <div class="tab active" data-tab="config" onclick="switchTab('config')">&#9881; Config</div>
+<div class="tab" data-tab="shape" onclick="switchTab('shape')">&#9638; Shape</div>
 <div class="tab" data-tab="button" onclick="switchTab('button')">&#9638; Boton</div>
 <div class="tab" data-tab="conditions" onclick="switchTab('conditions')">&#9881; Condiciones</div>
 <div class="tab" data-tab="actions" onclick="switchTab('actions')">&#9889; Acciones</div>
+<div class="tab" data-tab="functions" onclick="switchTab('functions');renderFuncSelector()">&#402; Functions</div>
 <div class="tab" data-tab="preview" onclick="switchTab('preview');renderPreview()">&#128065; Preview</div>
+<div class="tab" data-tab="yaml" onclick="switchTab('yaml');updateLiveYaml()">&#128196; YAML</div>
 </div>
 <div class="tab-content">
 <!-- CONFIG TAB -->
@@ -440,6 +535,37 @@ textarea,
 <textarea id="cfgOnOpen" rows="3" placeholder="tell: &aBienvenido!" oninput="markDirty()"></textarea>
 <label>On Close (acciones, una por linea)</label>
 <textarea id="cfgOnClose" rows="3" placeholder="" oninput="markDirty()"></textarea>
+</div>
+</div>
+
+<!-- SHAPE TAB -->
+<div class="tab-page" id="tab-shape">
+<div class="prop-section" style="text-align:center">
+<div class="prop-title">Shape Grid</div>
+<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;justify-content:center">
+<label style="margin:0">Filas:</label>
+<input type="number" id="shapeRows" value="6" min="1" max="6" onchange="resizeShape()" style="width:50px;padding:4px 6px;font-size:.8rem;text-align:center">
+<button class="btn btn-sm btn-secondary" onclick="selectAllFilled()" title="Seleccionar todos los slots llenos">Sel.All</button>
+<button class="btn btn-sm btn-secondary" onclick="clearShape()">Limpiar</button>
+</div>
+<div id="shapeGrid" class="shape-grid" style="display:inline-grid;gap:2px;margin:0 auto"></div>
+<div class="char-picker" id="charPicker" style="margin-top:10px;justify-content:center"></div>
+<div class="multi-toolbar" id="multiToolbar" style="margin-top:10px;justify-content:center">
+<span id="multiCount">0 slots</span>
+<input type="text" id="multiAssignChar" maxlength="1" placeholder="-" title="Caracter a asignar">
+<button class="btn btn-sm btn-primary" onclick="assignToSelected()">Asignar</button>
+<button class="btn btn-sm btn-danger" onclick="clearSelected()">Limpiar</button>
+<button class="btn btn-sm btn-secondary" onclick="deselectAll()">Deseleccionar</button>
+</div>
+</div>
+<div class="prop-section">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+<div class="prop-title" style="margin:0">Botones</div>
+<button class="btn btn-sm btn-primary" onclick="autoDetectButtons()">Auto-Detectar</button>
+</div>
+<div class="btn-list" id="btnList">
+<div class="empty-state"><div class="icon">&#9638;</div><p>Configura el shape y auto-detecta los botones</p></div>
+</div>
 </div>
 </div>
 
@@ -507,6 +633,134 @@ textarea,
 </div>
 </div>
 
+<!-- FUNCTIONS TAB -->
+<div class="tab-page" id="tab-functions">
+<div id="funcEmptyState" class="empty-state"><div class="icon">&#402;</div><p>No hay funciones</p><button class="btn btn-primary" onclick="addFunction()" style="margin-top:8px">+ Nueva Funcion</button></div>
+<div id="funcEditorFull" style="display:none">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;flex-wrap:wrap">
+<div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px">
+<label style="font-size:.75rem;color:#8b949e;white-space:nowrap">Funcion:</label>
+<select id="funcSelector" onchange="selectFunction(this.value)" style="flex:1;padding:6px 10px;background:#161b22;border:1px solid #21262d;border-radius:6px;color:#c9d1d9;font-size:.8rem;outline:none"></select>
+</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+<button class="btn btn-sm btn-primary" onclick="addFunction()">+ Nueva</button>
+<button class="btn btn-sm btn-danger" onclick="deleteCurrentFunction()" id="funcDelBtn" style="display:none">Eliminar</button>
+<button class="btn btn-sm btn-secondary" onclick="openFuncRef()">&#128214; Referencia</button>
+<button class="btn btn-sm btn-secondary" onclick="showFuncImport()">&#128229; Importar</button>
+<button class="btn btn-sm btn-secondary" onclick="showFuncExport()">&#128228; Exportar</button>
+</div>
+</div>
+<div id="funcImportExportArea" style="display:none;margin-bottom:12px"></div>
+<div class="func-editor-hdr">
+<div style="flex:1;min-width:140px"><label>Nombre de funcion</label><input type="text" id="funcNameInput" placeholder="miFuncion" oninput="updateFuncName(this.value)"></div>
+<div style="min-width:120px"><label>Descripcion</label><input type="text" id="funcDescInput" placeholder="Que hace esta funcion?" oninput="updateFuncDesc(this.value)"></div>
+<div style="min-width:110px"><label>Categoria</label>
+<select id="funcCatInput" onchange="updateFuncCat(this.value)">
+<option value="economia">Economia</option>
+<option value="items">Items</option>
+<option value="permisos">Permisos</option>
+<option value="meta">Meta / Variables</option>
+<option value="mensajes">Mensajes</option>
+<option value="matematicas">Matematicas</option>
+<option value="jugador">Jugador</option>
+<option value="avanzado">Avanzado</option>
+<option value="custom">Custom</option>
+</select>
+</div>
+<div style="min-width:90px"><label>Retorno</label>
+<select id="funcReturnInput" onchange="updateFuncReturn(this.value)">
+<option value="void">void</option>
+<option value="boolean">boolean</option>
+<option value="number">number</option>
+<option value="string">string</option>
+</select>
+</div>
+</div>
+<div class="func-dep-info" id="funcDepInfo" style="display:none"></div>
+<div class="func-editor-toolbar">
+<div class="func-tpl-dropdown">
+<button class="btn btn-secondary" onclick="toggleFuncTemplates()">&#128218; Plantillas</button>
+<div class="func-tpl-menu" id="funcTplMenu"></div>
+</div>
+<div class="func-snippet-dropdown">
+<button class="btn btn-secondary" onclick="toggleFuncSnippets()">&#128204; Snippets</button>
+<div class="func-snippet-menu" id="funcSnippetMenu"></div>
+</div>
+<button class="btn btn-secondary" onclick="openFuncRef()" title="Ver API de funciones">&#128214; Referencia</button>
+<div style="flex:1"></div>
+<span id="funcValidateResult"></span>
+<button class="btn btn-secondary" onclick="validateFuncCode()" title="Validar sintaxis">&#10003; Validar</button>
+<button class="btn btn-secondary" onclick="testFuncCode()" title="Probar funcion con datos mock">&#9654; Test</button>
+</div>
+<div class="func-code-wrap">
+<div class="func-code-container">
+<div class="func-line-numbers" id="funcLineNumbers"></div>
+<div class="func-code-area">
+<pre id="funcCodeHighlight"></pre>
+<textarea id="funcCodeEditor" spellcheck="false" oninput="onFuncCodeInput()" onscroll="syncFuncScroll()" onkeydown="handleFuncKeydown(event)"></textarea>
+</div>
+</div>
+</div>
+</div>
+<!-- Reference Modal (overlay) -->
+<div id="funcRefModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;background:rgba(0,0,0,0.5);justify-content:flex-end" onclick="if(event.target===this)closeFuncRef()">
+<div style="width:280px;background:#0d1117;border-left:1px solid #21262d;height:100%;overflow-y:auto;overflow-x:hidden;padding:0">
+<div style="padding:10px 12px;border-bottom:1px solid #21262d;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#0d1117;z-index:1">
+<span style="font-size:.75rem;font-weight:600;color:#c9d1d9;text-transform:uppercase;letter-spacing:.5px">API Referencia</span>
+<button onclick="closeFuncRef()" style="background:none;border:none;color:#8b949e;cursor:pointer;font-size:1rem;padding:2px 6px;border-radius:4px" onmouseover="this.style.color='#f85149'" onmouseout="this.style.color='#8b949e'">&times;</button>
+</div>
+<details open>
+<summary style="padding:8px 12px;font-size:.72rem;font-weight:600;color:#8b949e;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;list-style:none;display:flex;align-items:center;gap:6px;border-bottom:1px solid #21262d">utils</summary>
+<div class="func-ref-item" onclick="insertRefCode('utils.getPlayer(&quot;%player_name%&quot;)')"><code>getPlayer(name)</code><span class="ref-desc">Obtener objeto jugador</span></div>
+<div class="func-ref-item" onclick="insertRefCode('utils.getBalance(player)')"><code>getBalance(player)</code><span class="ref-desc">Balance (Vault)</span></div>
+<div class="func-ref-item" onclick="insertRefCode('utils.pay(player, amount)')"><code>pay(player, amt)</code><span class="ref-desc">Quitar dinero</span></div>
+<div class="func-ref-item" onclick="insertRefCode('utils.give(player, amount)')"><code>give(player, amt)</code><span class="ref-desc">Dar dinero</span></div>
+<div class="func-ref-item" onclick="insertRefCode('utils.hasPerm(player, &quot;perm.node&quot;)')"><code>hasPerm(p, node)</code><span class="ref-desc">Verificar permiso</span></div>
+<div class="func-ref-item" onclick="insertRefCode('utils.sendMsg(player, &quot;msg&quot;)')"><code>sendMsg(p, msg)</code><span class="ref-desc">Enviar mensaje</span></div>
+<div class="func-ref-item" onclick="insertRefCode('utils.runCmd(&quot;command&quot;)')"><code>runCmd(cmd)</code><span class="ref-desc">Ejecutar comando</span></div>
+<div class="func-ref-item" onclick="insertRefCode('utils.isNumber(str)')"><code>isNumber(str)</code><span class="ref-desc">Es numero?</span></div>
+</details>
+<details>
+<summary style="padding:8px 12px;font-size:.72rem;font-weight:600;color:#8b949e;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;list-style:none;display:flex;align-items:center;gap:6px;border-bottom:1px solid #21262d">meta</summary>
+<div class="func-ref-item" onclick="insertRefCode('meta.get(&quot;key&quot;)')"><code>meta.get(key)</code><span class="ref-desc">Obtener valor meta</span></div>
+<div class="func-ref-item" onclick="insertRefCode('meta.put(&quot;key&quot;, value)')"><code>meta.put(key, val)</code><span class="ref-desc">Setear valor meta</span></div>
+<div class="func-ref-item" onclick="insertRefCode('meta.has(&quot;key&quot;)')"><code>meta.has(key)</code><span class="ref-desc">Existe la key?</span></div>
+</details>
+<details>
+<summary style="padding:8px 12px;font-size:.72rem;font-weight:600;color:#8b949e;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;list-style:none;display:flex;align-items:center;gap:6px;border-bottom:1px solid #21262d">inv (Inventario)</summary>
+<div class="func-ref-item" onclick="insertRefCode('inv.hasItem(player, &quot;STONE&quot;, 64)')"><code>hasItem(p, mat, amt)</code><span class="ref-desc">Tiene el item?</span></div>
+<div class="func-ref-item" onclick="insertRefCode('inv.addItem(player, &quot;STONE&quot;, 64)')"><code>addItem(p, mat, amt)</code><span class="ref-desc">Dar item</span></div>
+<div class="func-ref-item" onclick="insertRefCode('inv.removeItem(player, &quot;STONE&quot;, 64)')"><code>removeItem(p, mat, amt)</code><span class="ref-desc">Quitar item</span></div>
+</details>
+<details>
+<summary style="padding:8px 12px;font-size:.72rem;font-weight:600;color:#8b949e;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;list-style:none;display:flex;align-items:center;gap:6px;border-bottom:1px solid #21262d">math</summary>
+<div class="func-ref-item" onclick="insertRefCode('Math.floor(value)')"><code>Math.floor(n)</code><span class="ref-desc">Redondear abajo</span></div>
+<div class="func-ref-item" onclick="insertRefCode('Math.ceil(value)')"><code>Math.ceil(n)</code><span class="ref-desc">Redondear arriba</span></div>
+<div class="func-ref-item" onclick="insertRefCode('Math.random()')"><code>Math.random()</code><span class="ref-desc">Random 0-1</span></div>
+<div class="func-ref-item" onclick="insertRefCode('Math.min(a, b)')"><code>Math.min(a, b)</code><span class="ref-desc">Minimo</span></div>
+<div class="func-ref-item" onclick="insertRefCode('Math.max(a, b)')"><code>Math.max(a, b)</code><span class="ref-desc">Maximo</span></div>
+<div class="func-ref-item" onclick="insertRefCode('Number(value)')"><code>Number(val)</code><span class="ref-desc">Convertir a numero</span></div>
+</details>
+<details>
+<summary style="padding:8px 12px;font-size:.72rem;font-weight:600;color:#8b949e;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;list-style:none;display:flex;align-items:center;gap:6px;border-bottom:1px solid #21262d">player (Jugador)</summary>
+<div class="func-ref-item" onclick="insertRefCode('player.getWorld().getName()')"><code>getWorld()</code><span class="ref-desc">Mundo actual</span></div>
+<div class="func-ref-item" onclick="insertRefCode('player.getLocation().getBlockX()')"><code>getBlockX/Y/Z()</code><span class="ref-desc">Coordenadas</span></div>
+<div class="func-ref-item" onclick="insertRefCode('player.getGameMode()')"><code>getGameMode()</code><span class="ref-desc">Modo de juego</span></div>
+<div class="func-ref-item" onclick="insertRefCode('player.getHealth()')"><code>getHealth()</code><span class="ref-desc">Vida actual</span></div>
+<div class="func-ref-item" onclick="insertRefCode('player.getLevel()')"><code>getLevel()</code><span class="ref-desc">Nivel de XP</span></div>
+<div class="func-ref-item" onclick="insertRefCode('player.getFoodLevel()')"><code>getFoodLevel()</code><span class="ref-desc">Nivel de hambre</span></div>
+</details>
+<details>
+<summary style="padding:8px 12px;font-size:.72rem;font-weight:600;color:#8b949e;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;list-style:none;display:flex;align-items:center;gap:6px;border-bottom:1px solid #21262d">string (Texto)</summary>
+<div class="func-ref-item" onclick="insertRefCode('String(value)')"><code>String(val)</code><span class="ref-desc">Convertir a string</span></div>
+<div class="func-ref-item" onclick="insertRefCode('text.indexOf(&quot;sub&quot;)')"><code>indexOf(sub)</code><span class="ref-desc">Buscar subtexto</span></div>
+<div class="func-ref-item" onclick="insertRefCode('text.substring(0, 5)')"><code>substring(a, b)</code><span class="ref-desc">Extraer parte</span></div>
+<div class="func-ref-item" onclick="insertRefCode('text.split(&quot;,&quot;)')"><code>split(sep)</code><span class="ref-desc">Dividir texto</span></div>
+</details>
+</div>
+</div>
+</div>
+
 <!-- PREVIEW TAB -->
 <div class="tab-page" id="tab-preview">
 <div class="preview-wrap">
@@ -517,15 +771,15 @@ textarea,
 </div>
 <!-- Item Detail Modal (injected dynamically) -->
 <div id="itemDetailOverlay" style="display:none"></div>
-</div>
 
-<!-- YAML PANEL (toggle) -->
-<div class="yaml-section-hdr" id="yamlSectionHdr" style="display:none">
+<!-- YAML TAB -->
+<div class="tab-page" id="tab-yaml">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-bottom:1px solid #21262d;flex-shrink:0">
 <span style="font-size:.8rem;color:#8b949e">YAML Output</span>
 <button class="btn btn-sm btn-secondary" onclick="copyYaml()">Copiar</button>
 </div>
-<div class="yaml-section-body" id="yamlSectionBody">
-<div class="yaml-preview" id="yamlLive" style="border:none;max-height:none;height:100%;border-radius:0"></div>
+<div class="yaml-preview" id="yamlLive" style="border:none;border-radius:0"></div>
+</div>
 </div>
 </div>
 
@@ -2876,7 +3130,7 @@ function switchTab(tab){
   document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
   document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
-  if(tab==='yaml') generateYamlPreview();
+  if(tab==='yaml') updateLiveYaml();
 }
 
 // ===== YAML GENERATOR =====
@@ -2956,6 +3210,12 @@ function generateYaml(){
       onClose.split('\n').forEach(l=>{if(l.trim()) y += `    - '${l.trim()}'\n`;});
     }
     y += '\n';
+  }
+
+  // Functions
+  saveCurrentFuncCode();
+  if(menuFunctions.length > 0){
+    y += generateFuncYaml() + '\n';
   }
 
   // Buttons
@@ -3051,60 +3311,17 @@ function exportYaml(){
   a.click();
 }
 
-// ===== DRAG RESIZE =====
-(function(){
-  const handle = document.getElementById('dragHandle');
-  const leftPanel = document.getElementById('leftPanel');
-  let dragging = false;
-  handle.addEventListener('mousedown', function(e){
-    dragging = true;
-    handle.classList.add('dragging');
-    e.preventDefault();
-  });
-  document.addEventListener('mousemove', function(e){
-    if(!dragging) return;
-    const newWidth = Math.max(200, Math.min(500, e.clientX));
-    leftPanel.style.flexBasis = newWidth + 'px';
-  });
-  document.addEventListener('mouseup', function(){
-    if(dragging){
-      dragging = false;
-      handle.classList.remove('dragging');
-    }
-  });
-})();
+// ===== DRAG RESIZE (removed - left panel removed) =====
 
-// ===== YAML TOGGLE =====
-let yamlVisible = false;
-function toggleYaml(){
-  yamlVisible = !yamlVisible;
-  const hdr = document.getElementById('yamlSectionHdr');
-  const body = document.getElementById('yamlSectionBody');
-  const tabContent = document.querySelector('.tab-content');
-  const btn = document.getElementById('yamlToggleBtn');
-  if(yamlVisible){
-    hdr.style.display = 'flex';
-    body.classList.add('show');
-    tabContent.style.maxHeight = '50%';
-    tabContent.style.overflow = 'hidden';
-    btn.classList.remove('btn-primary');
-    btn.classList.add('btn-danger');
-    updateLiveYaml();
-  } else {
-    hdr.style.display = 'none';
-    body.classList.remove('show');
-    tabContent.style.maxHeight = '';
-    tabContent.style.overflow = '';
-    btn.classList.remove('btn-danger');
-    btn.classList.add('btn-primary');
-  }
-}
+// ===== YAML =====
+// (YAML is now a tab, no toggle needed)
 
 // ===== PROJECT SAVE/LOAD SYSTEM =====
 const PROJ_STORAGE_KEY = 'trmenu_editor_projects';
 let _editingProjectId = null; // Track if we're editing an existing project
 
 function getProjectState(){
+  saveCurrentFuncCode();
   return {
     shape: shape.map(r=>[...r]),
     rows: rows,
@@ -3113,7 +3330,8 @@ function getProjectState(){
     cfgCommand: document.getElementById('cfgCommand').value,
     cfgClickDelay: document.getElementById('cfgClickDelay').value,
     cfgOnOpen: document.getElementById('cfgOnOpen').value,
-    cfgOnClose: document.getElementById('cfgOnClose').value
+    cfgOnClose: document.getElementById('cfgOnClose').value,
+    menuFunctions: JSON.parse(JSON.stringify(menuFunctions))
   };
 }
 
@@ -3126,6 +3344,9 @@ function restoreProjectState(state){
   document.getElementById('cfgClickDelay').value = state.cfgClickDelay || '200';
   document.getElementById('cfgOnOpen').value = state.cfgOnOpen || '';
   document.getElementById('cfgOnClose').value = state.cfgOnClose || '';
+  // Restore functions
+  menuFunctions = state.menuFunctions ? JSON.parse(JSON.stringify(state.menuFunctions)) : [];
+  activeFuncIdx = -1;
   // Update rows input
   const rowsInput = document.getElementById('shapeRows');
   if(rowsInput) rowsInput.value = rows;
@@ -3270,7 +3491,578 @@ function loadProjectFromHistory(id){
 document.addEventListener('keydown', function(e){
   if(e.key==='Escape'){
     if(document.getElementById('savePromptOverlay').classList.contains('show')) closeSavePrompt();
+    closeFuncDropdowns();
   }
+});
+
+// ===== FUNCTIONS TAB SYSTEM =====
+let menuFunctions = [];
+let activeFuncIdx = -1;
+
+// Template library
+const FUNC_TEMPLATES = {
+  'Economia': [
+    { label: 'Verificar balance minimo', body: 'var player = utils.getPlayer("%player_name%");\nvar balance = utils.getBalance(player);\nreturn balance >= MINIMO;' },
+    { label: 'Quitar dinero', body: 'var player = utils.getPlayer("%player_name%");\nvar costo = CANTIDAD;\nvar balance = utils.getBalance(player);\nif(balance >= costo){\n  utils.pay(player, costo);\n  return true;\n}\nreturn false;' },
+    { label: 'Dar dinero', body: 'var player = utils.getPlayer("%player_name%");\nutils.give(player, CANTIDAD);' },
+    { label: 'Transferir entre jugadores', body: 'var from = utils.getPlayer("%player_name%");\nvar to = utils.getPlayer("OTRO_JUGADOR");\nvar amt = CANTIDAD;\nif(utils.getBalance(from) >= amt){\n  utils.pay(from, amt);\n  utils.give(to, amt);\n  return true;\n}\nreturn false;' }
+  ],
+  'Items': [
+    { label: 'Dar item basico', body: 'var player = utils.getPlayer("%player_name%");\ninv.addItem(player, "DIAMOND", 1);' },
+    { label: 'Verificar item en inventario', body: 'var player = utils.getPlayer("%player_name%");\nreturn inv.hasItem(player, "DIAMOND", 1);' },
+    { label: 'Contar items en inventario', body: 'var player = utils.getPlayer("%player_name%");\nvar count = 0;\nvar inv = player.getInventory().getContents();\nfor(var i = 0; i < inv.length; i++){\n  if(inv[i] != null && inv[i].getType().name() == "DIAMOND"){\n    count += inv[i].getAmount();\n  }\n}\nreturn count;' },
+    { label: 'Remover items', body: 'var player = utils.getPlayer("%player_name%");\ninv.removeItem(player, "DIAMOND", 5);' }
+  ],
+  'Permisos': [
+    { label: 'Verificar permiso', body: 'var player = utils.getPlayer("%player_name%");\nreturn utils.hasPerm(player, "mi.plugin.permiso");' },
+    { label: 'Verificar grupo (LuckPerms)', body: 'var player = utils.getPlayer("%player_name%");\nvar lp = server.getPluginManager().getPlugin("LuckPerms");\nvar mgr = lp.getUserManager();\nvar user = mgr.getUser(player.getUniqueId());\nreturn user.getPrimaryGroup().equals("GRUPO");' },
+    { label: 'Dar permiso temporal', body: 'var player = utils.getPlayer("%player_name%");\nvar lp = server.getPluginManager().getPlugin("LuckPerms");\nvar api = lp.getPlayerAdapter().getPermissionHandler();\n// Nota: Requiere LuckPerms API\nutils.runCmd("lp user " + player.getName() + " permission settemp mi.permiso true 1h");' }
+  ],
+  'Meta / Variables': [
+    { label: 'Setear meta', body: 'meta.put("mi_clave", "valor");' },
+    { label: 'Obtener meta', body: 'var val = meta.get("mi_clave");\nreturn val;' },
+    { label: 'Sumar a meta (numero)', body: 'var key = "mi_clave";\nvar current = Number(meta.get(key)) || 0;\nmeta.put(key, current + CANTIDAD);\nreturn current + CANTIDAD;' },
+    { label: 'Resetear meta', body: 'meta.put("mi_clave", 0);' },
+    { label: 'Verificar si existe meta', body: 'return meta.has("mi_clave");' }
+  ],
+  'Mensajes': [
+    { label: 'Enviar mensaje con colores', body: 'var player = utils.getPlayer("%player_name%");\nutils.sendMsg(player, "&a&lExito! &7Has completado la accion.");' },
+    { label: 'Enviar titulo', body: 'var player = utils.getPlayer("%player_name%");\nplayer.sendTitle("&6&lTITULO", "&7Subtitulo", 10, 40, 10);' },
+    { label: 'Enviar actionbar', body: 'var player = utils.getPlayer("%player_name%");\nplayer.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR, new net.md_5.bungee.api.chat.TextComponent("&eMensaje en actionbar"));' },
+    { label: 'Broadcast (todos)', body: 'utils.runCmd("broadcast &6&l[AVISO] &fMensaje para todos");' }
+  ],
+  'Matematicas': [
+    { label: 'Random entre min-max', body: 'var min = 1;\nvar max = 100;\nreturn Math.floor(Math.random() * (max - min + 1)) + min;' },
+    { label: 'Calcular porcentaje', body: 'var total = 1000;\nvar pct = 15;\nreturn Math.floor(total * pct / 100);' },
+    { label: 'Clamp (limitar rango)', body: 'var value = VALOR;\nvar min = 0;\nvar max = 100;\nreturn Math.max(min, Math.min(max, value));' },
+    { label: 'Formatear numero con comas', body: 'var num = 1234567;\nreturn String(num).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ",");' }
+  ],
+  'Jugador': [
+    { label: 'Verificar mundo', body: 'var player = utils.getPlayer("%player_name%");\nreturn player.getWorld().getName().equals("world");' },
+    { label: 'Verificar coordenadas (radio)', body: 'var player = utils.getPlayer("%player_name%");\nvar loc = player.getLocation();\nvar cx = 0, cy = 64, cz = 0;\nvar radio = 10;\nvar dx = loc.getBlockX() - cx;\nvar dy = loc.getBlockY() - cy;\nvar dz = loc.getBlockZ() - cz;\nreturn (dx*dx + dy*dy + dz*dz) <= radio*radio;' },
+    { label: 'Teletransportar', body: 'var player = utils.getPlayer("%player_name%");\nvar world = server.getWorld("world");\nplayer.teleport(new org.bukkit.Location(world, X, Y, Z));' },
+    { label: 'Verificar gamemode', body: 'var player = utils.getPlayer("%player_name%");\nreturn player.getGameMode().name() == "SURVIVAL";' }
+  ],
+  'Avanzado': [
+    { label: 'Ejecutar comando como consola', body: 'utils.runCmd("give %player_name% diamond 1");' },
+    { label: 'Delay (ejecutar despues)', body: '// Ejecutar despues de 20 ticks (1 segundo)\nserver.getScheduler().runTaskLater(plugin, function(){\n  utils.runCmd("tu_comando");\n}, 20);' },
+    { label: 'Condicional complejo', body: 'var player = utils.getPlayer("%player_name%");\nvar balance = utils.getBalance(player);\nvar tienePerm = utils.hasPerm(player, "mi.perm");\nvar nivel = player.getLevel();\nif(balance >= 1000 && tienePerm && nivel >= 5){\n  return true;\n}\nreturn false;' },
+    { label: 'Llamar otra funcion', body: '// Llama la funcion &otraFuncion\nvar result = otraFuncion();\nif(result){\n  utils.sendMsg(utils.getPlayer("%player_name%"), "&aOtra funcion retorno true!");\n}\nreturn result;' }
+  ]
+};
+
+// Snippets (insert at cursor)
+const FUNC_SNIPPETS = [
+  { label: 'if / else', code: 'if(condicion){\n  \n} else {\n  \n}' },
+  { label: 'for loop', code: 'for(var i = 0; i < max; i++){\n  \n}' },
+  { label: 'try / catch', code: 'try {\n  \n} catch(e) {\n  utils.sendMsg(utils.getPlayer("%player_name%"), "&cError: " + e);\n}' },
+  { label: 'utils.getBalance', code: 'utils.getBalance(utils.getPlayer("%player_name%"))' },
+  { label: 'utils.hasPerm', code: 'utils.hasPerm(utils.getPlayer("%player_name%"), "perm.node")' },
+  { label: 'utils.sendMsg', code: 'utils.sendMsg(utils.getPlayer("%player_name%"), "&aMensaje")' },
+  { label: 'meta.get', code: 'meta.get("key")' },
+  { label: 'meta.put', code: 'meta.put("key", value)' },
+  { label: 'Number()', code: 'Number(value)' },
+  { label: 'Math.floor()', code: 'Math.floor(value)' },
+  { label: 'Math.random()', code: 'Math.floor(Math.random() * (max - min + 1)) + min' },
+  { label: 'return true', code: 'return true;' },
+  { label: 'return false', code: 'return false;' },
+  { label: 'var player', code: 'var player = utils.getPlayer("%player_name%");' }
+];
+
+// ===== FUNCTION CRUD =====
+function addFunction(){
+  const name = 'funcion_' + (menuFunctions.length + 1);
+  menuFunctions.push({
+    name: name,
+    desc: '',
+    category: 'custom',
+    returnType: 'void',
+    body: '// Escribe tu funcion aqui\n'
+  });
+  activeFuncIdx = menuFunctions.length - 1;
+  renderFuncSelector();
+  renderFuncEditor();
+  markDirty();
+  updateLiveYaml();
+}
+
+function deleteCurrentFunction(){
+  if(activeFuncIdx < 0 || activeFuncIdx >= menuFunctions.length) return;
+  deleteFunction(activeFuncIdx);
+}
+
+function deleteFunction(idx){
+  if(idx < 0 || idx >= menuFunctions.length) return;
+  const fn = menuFunctions[idx];
+  const deps = getFuncDependencies(fn.name);
+  let msg = 'Eliminar funcion "' + fn.name + '"?';
+  if(deps.length > 0) msg += '\n\nUsada por: ' + deps.join(', ');
+  if(!confirm(msg)) return;
+  menuFunctions.splice(idx, 1);
+  if(activeFuncIdx === idx) activeFuncIdx = menuFunctions.length > 0 ? 0 : -1;
+  else if(activeFuncIdx > idx) activeFuncIdx--;
+  renderFuncSelector();
+  renderFuncEditor();
+  markDirty();
+  updateLiveYaml();
+}
+
+function selectFunction(val){
+  saveCurrentFuncCode();
+  const idx = parseInt(val);
+  if(isNaN(idx) || idx < 0 || idx >= menuFunctions.length){ activeFuncIdx = -1; renderFuncEditor(); return; }
+  activeFuncIdx = idx;
+  renderFuncEditor();
+}
+
+function saveCurrentFuncCode(){
+  if(activeFuncIdx < 0 || activeFuncIdx >= menuFunctions.length) return;
+  const editor = document.getElementById('funcCodeEditor');
+  if(editor) menuFunctions[activeFuncIdx].body = editor.value;
+}
+
+function updateFuncName(val){
+  if(activeFuncIdx < 0) return;
+  const oldName = menuFunctions[activeFuncIdx].name;
+  menuFunctions[activeFuncIdx].name = val.replace(/[^a-zA-Z0-9_]/g, '');
+  document.getElementById('funcNameInput').value = menuFunctions[activeFuncIdx].name;
+  renderFuncSelector();
+  updateFuncDepInfo();
+  markDirty();
+  updateLiveYaml();
+}
+
+function updateFuncDesc(val){
+  if(activeFuncIdx < 0) return;
+  menuFunctions[activeFuncIdx].desc = val;
+  markDirty();
+}
+
+function updateFuncCat(val){
+  if(activeFuncIdx < 0) return;
+  menuFunctions[activeFuncIdx].category = val;
+  renderFuncSelector();
+  markDirty();
+}
+
+function updateFuncReturn(val){
+  if(activeFuncIdx < 0) return;
+  menuFunctions[activeFuncIdx].returnType = val;
+  markDirty();
+}
+
+// ===== RENDERING =====
+function renderFuncSelector(){
+  const sel = document.getElementById('funcSelector');
+  if(!sel) return;
+  if(menuFunctions.length === 0){ sel.innerHTML = ''; return; }
+  let html = '';
+  menuFunctions.forEach((fn, idx) => {
+    html += '<option value="' + idx + '"' + (idx === activeFuncIdx ? ' selected' : '') + '>' + escHtml(fn.name) + ' (' + fn.category + ')</option>';
+  });
+  sel.innerHTML = html;
+  const delBtn = document.getElementById('funcDelBtn');
+  if(delBtn) delBtn.style.display = menuFunctions.length > 0 ? '' : 'none';
+}
+
+function renderFuncEditor(){
+  const empty = document.getElementById('funcEmptyState');
+  const editor = document.getElementById('funcEditorFull');
+  if(activeFuncIdx < 0 || activeFuncIdx >= menuFunctions.length){
+    if(empty) empty.style.display = 'flex';
+    if(editor) editor.style.display = 'none';
+    return;
+  }
+  if(empty) empty.style.display = 'none';
+  if(editor) editor.style.display = 'block';
+  const fn = menuFunctions[activeFuncIdx];
+  document.getElementById('funcNameInput').value = fn.name;
+  document.getElementById('funcDescInput').value = fn.desc || '';
+  document.getElementById('funcCatInput').value = fn.category || 'custom';
+  document.getElementById('funcReturnInput').value = fn.returnType || 'void';
+  const codeEditor = document.getElementById('funcCodeEditor');
+  codeEditor.value = fn.body || '';
+  updateFuncHighlight();
+  updateFuncLineNumbers();
+  updateFuncDepInfo();
+}
+// ===== CODE EDITOR =====
+function onFuncCodeInput(){
+  updateFuncHighlight();
+  updateFuncLineNumbers();
+  saveCurrentFuncCode();
+  markDirty();
+  updateLiveYaml();
+}
+
+function syncFuncScroll(){
+  const ta = document.getElementById('funcCodeEditor');
+  const pre = document.getElementById('funcCodeHighlight');
+  const ln = document.getElementById('funcLineNumbers');
+  pre.scrollTop = ta.scrollTop;
+  pre.scrollLeft = ta.scrollLeft;
+  ln.scrollTop = ta.scrollTop;
+}
+
+function handleFuncKeydown(e){
+  const ta = e.target;
+  // Tab key: insert 2 spaces
+  if(e.key === 'Tab'){
+    e.preventDefault();
+    var start = ta.selectionStart;
+    var end = ta.selectionEnd;
+    ta.value = ta.value.substring(0, start) + '  ' + ta.value.substring(end);
+    ta.selectionStart = ta.selectionEnd = start + 2;
+    onFuncCodeInput();
+  }
+  // Enter key: auto-indent
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    var start = ta.selectionStart;
+    var lineStart = ta.value.lastIndexOf('\n', start - 1) + 1;
+    var currentLine = ta.value.substring(lineStart, start);
+    var indent = currentLine.match(/^(\s*)/)[1];
+    // Add extra indent after {
+    if(currentLine.trimEnd().endsWith('{')) indent += '  ';
+    ta.value = ta.value.substring(0, start) + '\n' + indent + ta.value.substring(ta.selectionEnd);
+    ta.selectionStart = ta.selectionEnd = start + 1 + indent.length;
+    onFuncCodeInput();
+  }
+}
+
+function updateFuncHighlight(){
+  const ta = document.getElementById('funcCodeEditor');
+  const pre = document.getElementById('funcCodeHighlight');
+  pre.innerHTML = highlightJsCode(ta.value) + '\n';
+}
+
+function highlightJsCode(code){
+  // Escape HTML
+  let h = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // Comments (// ...)
+  h = h.replace(/(\/\/.*)$/gm, '<span class="tok-cmt">$1</span>');
+  // Strings ("..." or '...')
+  h = h.replace(/("(?:[^"\\]|\\.)*")/g, '<span class="tok-str">$1</span>');
+  h = h.replace(/('(?:[^'\\]|\\.)*')/g, '<span class="tok-str">$1</span>');
+  // Numbers
+  h = h.replace(/\b(\d+\.?\d*)\b/g, '<span class="tok-num">$1</span>');
+  // Keywords
+  h = h.replace(/\b(var|let|const|function|return|if|else|for|while|do|switch|case|break|continue|new|try|catch|throw|typeof|instanceof|in|of|class|extends|import|export|default|null|undefined)\b/g, '<span class="tok-kw">$1</span>');
+  // Booleans
+  h = h.replace(/\b(true|false)\b/g, '<span class="tok-bool">$1</span>');
+  // Known function calls
+  h = h.replace(/\b(utils|meta|inv|Math|Number|String|server|plugin|player)\b/g, '<span class="tok-fn">$1</span>');
+  return h;
+}
+
+function updateFuncLineNumbers(){
+  const ta = document.getElementById('funcCodeEditor');
+  const ln = document.getElementById('funcLineNumbers');
+  const lines = ta.value.split('\n').length;
+  let html = '';
+  for(let i = 1; i <= lines; i++) html += i + '\n';
+  ln.textContent = html;
+}
+
+function openFuncRef(){
+  const modal = document.getElementById('funcRefModal');
+  modal.style.display = 'flex';
+}
+function closeFuncRef(){
+  document.getElementById('funcRefModal').style.display = 'none';
+}
+
+function insertRefCode(code){
+  if(activeFuncIdx < 0) return;
+  const ta = document.getElementById('funcCodeEditor');
+  const start = ta.selectionStart;
+  const end = ta.selectionEnd;
+  ta.value = ta.value.substring(0, start) + code + ta.value.substring(end);
+  ta.selectionStart = ta.selectionEnd = start + code.length;
+  ta.focus();
+  onFuncCodeInput();
+}
+
+// ===== TEMPLATES & SNIPPETS =====
+function toggleFuncTemplates(){
+  const menu = document.getElementById('funcTplMenu');
+  const isOpen = menu.classList.contains('show');
+  closeFuncDropdowns();
+  if(isOpen) return;
+  let html = '';
+  Object.keys(FUNC_TEMPLATES).forEach(cat => {
+    html += '<div class="func-tpl-cat">' + cat + '</div>';
+    FUNC_TEMPLATES[cat].forEach(tpl => {
+      html += '<div class="func-tpl-item" onclick="applyFuncTemplate(\'' + escHtml(cat) + '\',' + FUNC_TEMPLATES[cat].indexOf(tpl) + ')">' + tpl.label + '</div>';
+    });
+  });
+  menu.innerHTML = html;
+  menu.classList.add('show');
+}
+
+function applyFuncTemplate(cat, idx){
+  const tpl = FUNC_TEMPLATES[cat][idx];
+  if(!tpl) return;
+  const ta = document.getElementById('funcCodeEditor');
+  ta.value = tpl.body;
+  ta.focus();
+  onFuncCodeInput();
+  closeFuncDropdowns();
+}
+
+function toggleFuncSnippets(){
+  const menu = document.getElementById('funcSnippetMenu');
+  const isOpen = menu.classList.contains('show');
+  closeFuncDropdowns();
+  if(isOpen) return;
+  let html = '';
+  FUNC_SNIPPETS.forEach((sn, i) => {
+    html += '<div class="func-tpl-item" onclick="applyFuncSnippet(' + i + ')">' + sn.label + '</div>';
+  });
+  menu.innerHTML = html;
+  menu.classList.add('show');
+}
+
+function applyFuncSnippet(idx){
+  const sn = FUNC_SNIPPETS[idx];
+  if(!sn) return;
+  insertRefCode(sn.code);
+  closeFuncDropdowns();
+}
+
+function closeFuncDropdowns(){
+  document.querySelectorAll('.func-tpl-menu,.func-snippet-menu').forEach(m => m.classList.remove('show'));
+}
+
+// Close dropdowns on outside click
+document.addEventListener('click', function(e){
+  if(!e.target.closest('.func-tpl-dropdown') && !e.target.closest('.func-snippet-dropdown')){
+    closeFuncDropdowns();
+  }
+});
+
+// ===== VALIDATION =====
+function validateFuncCode(){
+  const ta = document.getElementById('funcCodeEditor');
+  const result = document.getElementById('funcValidateResult');
+  const code = ta.value;
+  // Check bracket balance
+  let braces = 0, parens = 0, brackets = 0;
+  let inStr = false, strChar = '';
+  for(let i = 0; i < code.length; i++){
+    const c = code[i];
+    if(inStr){
+      if(c === '\\'){ i++; continue; }
+      if(c === strChar) inStr = false;
+      continue;
+    }
+    if(c === '"' || c === "'"){ inStr = true; strChar = c; continue; }
+    if(c === '/' && code[i+1] === '/'){ while(i < code.length && code[i] !== '\n') i++; continue; }
+    if(c === '{') braces++;
+    if(c === '}') braces--;
+    if(c === '(') parens++;
+    if(c === ')') parens--;
+    if(c === '[') brackets++;
+    if(c === ']') brackets--;
+  }
+  let errors = [];
+  if(braces !== 0) errors.push('{} desbalanceado (' + (braces > 0 ? 'faltan ' + braces + ' }' : 'sobran ' + Math.abs(braces) + ' }') + ')');
+  if(parens !== 0) errors.push('() desbalanceado (' + (parens > 0 ? 'faltan ' + parens + ' )' : 'sobran ' + Math.abs(parens) + ' )') + ')');
+  if(brackets !== 0) errors.push('[] desbalanceado');
+  if(errors.length > 0){
+    result.innerHTML = '<span class="func-validate-err">&#10007; ' + errors.join(', ') + '</span>';
+  } else {
+    result.innerHTML = '<span class="func-validate-ok">&#10003; Sintaxis OK</span>';
+  }
+  setTimeout(() => { result.innerHTML = ''; }, 4000);
+}
+
+function testFuncCode(){
+  saveCurrentFuncCode();
+  if(activeFuncIdx < 0) return;
+  const fn = menuFunctions[activeFuncIdx];
+  const code = fn.body || '';
+  // Mock context for testing
+  const mockPlayer = { getName: () => 'TestPlayer', getHealth: () => 20, getLevel: () => 5, getFoodLevel: () => 20, getGameMode: () => ({name: () => 'SURVIVAL'}), getWorld: () => ({getName: () => 'world'}), getLocation: () => ({getBlockX: () => 0, getBlockY: () => 64, getBlockZ: () => 0}), getInventory: () => ({getContents: () => []}), sendTitle: function(){}, spigot: function(){ return {sendMessage: function(){}}; }};
+  const mockMeta = {};
+  const mockUtils = {
+    getPlayer: () => mockPlayer,
+    getBalance: () => 10000,
+    pay: () => true,
+    give: () => true,
+    hasPerm: () => true,
+    sendMsg: (p, msg) => { console.log('[MSG] ' + msg); },
+    runCmd: (cmd) => { console.log('[CMD] ' + cmd); },
+    isNumber: (s) => !isNaN(Number(s))
+  };
+  const mockInv = {
+    hasItem: () => true,
+    addItem: () => {},
+    removeItem: () => {}
+  };
+  try {
+    const testFn = new Function('utils', 'meta', 'inv', 'player', 'server', 'plugin', code);
+    const result = testFn(mockUtils, mockMeta, mockInv, mockPlayer, {getPluginManager: () => ({getPlugin: () => null}), getScheduler: () => ({runTaskLater: function(){}}), getWorld: () => null}, {});
+    alert('Resultado: ' + result + '\n\nTipo: ' + typeof result + '\n\n(Check consola del navegador para logs)');
+  } catch(e) {
+    alert('Error en la funcion:\n' + e.message);
+  }
+}
+
+// ===== DEPENDENCY TRACKING =====
+function getFuncDependencies(funcName){
+  const deps = [];
+  Object.keys(buttons).forEach(id => {
+    const b = buttons[id];
+    // Check conditions
+    if(b.icons) b.icons.forEach(ic => {
+      if(ic.condition && ic.condition.indexOf('&' + funcName) !== -1) deps.push('Boton ' + id + ' (condicion)');
+    });
+    // Check actions
+    if(b.actions) b.actions.forEach(a => {
+      if(a.type === 'FUNCTION' && a.value === funcName) deps.push('Boton ' + id + ' (accion)');
+    });
+    // Check icon actions
+    if(b.icons) b.icons.forEach(ic => {
+      if(ic.actions) ic.actions.forEach(a => {
+        if(a.type === 'FUNCTION' && a.value === funcName) deps.push('Boton ' + id + '/icon (accion)');
+      });
+      if(ic.deny) ic.deny.forEach(a => {
+        if(a.type === 'FUNCTION' && a.value === funcName) deps.push('Boton ' + id + '/icon (deny)');
+      });
+    });
+    // Check button deny actions
+    if(b.deny) b.deny.forEach(a => {
+      if(a.type === 'FUNCTION' && a.value === funcName) deps.push('Boton ' + id + ' (deny)');
+    });
+  });
+  // Check other functions
+  menuFunctions.forEach((fn, idx) => {
+    if(fn.body && fn.body.indexOf(funcName + '(') !== -1 && idx !== activeFuncIdx) deps.push('Funcion ' + fn.name);
+  });
+  // Check events
+  const onOpen = document.getElementById('cfgOnOpen').value;
+  const onClose = document.getElementById('cfgOnClose').value;
+  if(onOpen.indexOf(funcName) !== -1) deps.push('Evento Open');
+  if(onClose.indexOf(funcName) !== -1) deps.push('Evento Close');
+  return deps;
+}
+
+function updateFuncDepInfo(){
+  const info = document.getElementById('funcDepInfo');
+  if(!info || activeFuncIdx < 0) return;
+  const fn = menuFunctions[activeFuncIdx];
+  const deps = getFuncDependencies(fn.name);
+  if(deps.length === 0){
+    info.style.display = 'none';
+    return;
+  }
+  info.style.display = 'flex';
+  let html = '<span style="color:#484f58">&#128279; Usada por:</span> ';
+  deps.forEach(d => { html += '<span class="func-dep-tag">' + escHtml(d) + '</span> '; });
+  info.innerHTML = html;
+}
+
+// ===== IMPORT / EXPORT =====
+function showFuncImport(){
+  const area = document.getElementById('funcImportExportArea');
+  if(area.style.display !== 'none'){ area.style.display = 'none'; area.innerHTML = ''; return; }
+  let html = '<div style="margin-top:6px"><div style="font-size:.65rem;color:#8b949e;margin-bottom:4px">Pega YAML de Functions:</div>';
+  html += '<textarea class="func-import-area" id="funcImportText" placeholder="Functions:\n  miFuncion: |-\n    var x = 1;\n    return x;"></textarea>';
+  html += '<button class="btn btn-sm btn-primary" onclick="doFuncImport()" style="margin-top:4px;width:100%;font-size:.65rem">Importar</button></div>';
+  area.innerHTML = html;
+  area.style.display = 'block';
+}
+
+function doFuncImport(){
+  const text = document.getElementById('funcImportText').value;
+  if(!text.trim()) return;
+  // Simple YAML parse for Functions block
+  const lines = text.split('\n');
+  let currentName = null;
+  let currentBody = '';
+  let inFunc = false;
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    if(trimmed === 'Functions:' || trimmed === '') return;
+    // Function name line: "  funcName: |-" or "  funcName: |"
+    const nameMatch = line.match(/^\s{2}(\w+)\s*:\s*\|[-]?/);
+    if(nameMatch){
+      if(currentName){
+        menuFunctions.push({ name: currentName, desc: '', category: 'custom', returnType: 'void', body: currentBody });
+      }
+      currentName = nameMatch[1];
+      currentBody = '';
+      inFunc = true;
+      return;
+    }
+    if(inFunc && line.match(/^\s{4}/)){
+      currentBody += line.replace(/^\s{4}/, '') + '\n';
+    } else if(inFunc && trimmed && !line.match(/^\s{4}/)){
+      if(currentName){
+        menuFunctions.push({ name: currentName, desc: '', category: 'custom', returnType: 'void', body: currentBody });
+        currentName = null;
+        currentBody = '';
+      }
+      inFunc = false;
+    }
+  });
+  if(currentName){
+    menuFunctions.push({ name: currentName, desc: '', category: 'custom', returnType: 'void', body: currentBody });
+  }
+  renderFuncSelector();
+  document.getElementById('funcImportExportArea').style.display = 'none';
+  markDirty();
+  updateLiveYaml();
+}
+
+function showFuncExport(){
+  const area = document.getElementById('funcImportExportArea');
+  if(area.style.display !== 'none' && area.querySelector('#funcExportText')){ area.style.display = 'none'; area.innerHTML = ''; return; }
+  saveCurrentFuncCode();
+  const yaml = generateFuncYaml();
+  let html = '<div style="margin-top:6px"><div style="font-size:.65rem;color:#8b949e;margin-bottom:4px">YAML de Functions:</div>';
+  html += '<textarea class="func-import-area" id="funcExportText" readonly>' + escHtml(yaml) + '</textarea>';
+  html += '<button class="btn btn-sm btn-secondary" onclick="copyFuncExport()" style="margin-top:4px;width:100%;font-size:.65rem">Copiar</button></div>';
+  area.innerHTML = html;
+  area.style.display = 'block';
+}
+
+function copyFuncExport(){
+  const ta = document.getElementById('funcExportText');
+  if(ta){ ta.select(); document.execCommand('copy'); }
+}
+
+function generateFuncYaml(){
+  if(menuFunctions.length === 0) return '';
+  let y = 'Functions:\n';
+  menuFunctions.forEach(fn => {
+    y += '  ' + fn.name + ': |-\n';
+    const bodyLines = (fn.body || '').split('\n');
+    bodyLines.forEach(line => {
+      y += '    ' + line + '\n';
+    });
+  });
+  return y;
+}
+
+// ===== LOGO DROPDOWN =====
+function toggleLogoDropdown(e){
+  e.stopPropagation();
+  const dd = document.getElementById('logoDropdown');
+  dd.classList.toggle('show');
+}
+function closeLogoDropdown(){
+  document.getElementById('logoDropdown').classList.remove('show');
+}
+document.addEventListener('click', function(e){
+  const dd = document.getElementById('logoDropdown');
+  if(dd && !e.target.closest('.logo-btn') && !e.target.closest('.logo-dropdown')){
+    dd.classList.remove('show');
+  }
+});
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape') closeLogoDropdown();
 });
 
 // ===== INIT =====
