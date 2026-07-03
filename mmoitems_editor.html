@@ -206,6 +206,24 @@ textarea{resize:vertical;min-height:60px;font-family:'Cascadia Code','Fira Code'
 .save-prompt input{width:100%;padding:8px 10px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:.85rem;outline:none;margin-bottom:12px}
 .save-prompt input:focus{border-color:#58a6ff}
 .save-prompt-btns{display:flex;gap:8px;justify-content:flex-end}
+
+/* Logo Button & Dropdown */
+.logo-btn{width:32px;height:32px;border:none;background:none;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;transition:all .15s;flex-shrink:0}
+.logo-btn:hover{background:#21262d;transform:scale(1.1)}
+.logo-btn img{width:28px;height:28px;image-rendering:auto}
+.logo-dropdown{position:absolute;top:100%;left:0;width:220px;background:#161b22;border:1px solid #30363d;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:1000;display:none;overflow:hidden;animation:logoSlideIn .15s ease-out}
+.logo-dropdown.show{display:block}
+@keyframes logoSlideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.logo-dropdown-hdr{padding:10px 14px;border-bottom:1px solid #21262d;display:flex;align-items:center;gap:8px}
+.logo-dropdown-hdr img{width:24px;height:24px}
+.logo-dropdown-hdr span{font-size:.75rem;font-weight:600;color:#58a6ff}
+.logo-dropdown-item{padding:9px 14px;font-size:.8rem;color:#c9d1d9;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s;border-bottom:1px solid #21262d}
+.logo-dropdown-item:hover{background:#1a2332;color:#58a6ff}
+.logo-dropdown-item:last-child{border-bottom:none}
+.logo-dropdown-item .dd-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.logo-dropdown-item .dd-label{flex:1}
+.logo-dropdown-sep{height:1px;background:#21262d;margin:0}
+
 /* ===========================
    MOBILE / RESPONSIVE
 =========================== */
@@ -294,9 +312,9 @@ textarea,
 <div class="app">
 <!-- LEFT PANEL -->
 <div class="panel" id="leftPanel" style="width:260px;min-width:200px;max-width:400px;flex-shrink:0">
-<div class="panel-hdr">Items <button class="btn btn-sm btn-primary" style="float:right" onclick="addNewItem()">+ Item</button></div>
+<div class="panel-hdr">Items</div>
 <div class="cat-list" id="itemList">
-<div class="empty-state"><div class="icon">&#9874;</div><p>Crea items con + Item</p></div>
+<div class="empty-state"><div class="icon">&#9874;</div><p>Ve a la pestaña "Nuevo Item" para crear items</p></div>
 </div>
 </div>
 <div class="drag-handle" id="dragHandle"></div>
@@ -304,6 +322,22 @@ textarea,
 <!-- EDITOR -->
 <div class="center">
 <div class="toolbar">
+<div style="position:relative">
+<button class="logo-btn" onclick="toggleLogoDropdown(event)" title="Menu"><img src="ml_logo.png" alt="ML"></button>
+<div class="logo-dropdown" id="logoDropdown">
+<div class="logo-dropdown-hdr"><img src="ml_logo.png" alt="ML"><span>MineLatino</span></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.com','_blank');closeLogoDropdown()"><span class="dd-icon">&#127760;</span><span class="dd-label">MineLatino</span></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.shop','_blank');closeLogoDropdown()"><span class="dd-icon">&#128722;</span><span class="dd-label">Tienda MineLatino</span></div>
+<div class="logo-dropdown-item" onclick="window.open('http://discord.minelatino.com','_blank');closeLogoDropdown()"><span class="dd-icon">&#128172;</span><span class="dd-label">Discord MineLatino</span></div>
+<div class="logo-dropdown-sep"></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.net/tools/editor/trmenu','_blank');closeLogoDropdown()"><span class="dd-icon">&#9874;</span><span class="dd-label">TrMenu Editor</span></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.net/tools/editor/mmoitems','_blank');closeLogoDropdown()"><span class="dd-icon">&#9876;</span><span class="dd-label">MMOItems Editor</span></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.net/tools/editor/deluxetags','_blank');closeLogoDropdown()"><span class="dd-icon">&#127991;</span><span class="dd-label">Tags Editor</span></div>
+<div class="logo-dropdown-sep"></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.com/herramientas-minecraft-rgb/','_blank');closeLogoDropdown()"><span class="dd-icon">&#127912;</span><span class="dd-label">RGB Gradient</span></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.com/herramientas-discord-tiempo/','_blank');closeLogoDropdown()"><span class="dd-icon">&#128336;</span><span class="dd-label">Discord Tiempo</span></div>
+</div>
+</div>
 <h1 style="margin:0;font-size:.85rem">&#9874; MineLatino | MMOItems Editor</h1>
 <div style="flex:1"></div>
 <button class="btn btn-secondary" onclick="saveProject()">&#128190; Guardar</button>
@@ -312,7 +346,8 @@ textarea,
 <button class="btn btn-secondary" onclick="exportYaml()">Descargar .yml</button>
 </div>
 <div class="tab-bar">
-<div class="tab active" data-tab="general" onclick="switchTab('general')">&#9881; General</div>
+<div class="tab active" data-tab="nuevo" onclick="switchTab('nuevo')">&#10010; Nuevo Item</div>
+<div class="tab" data-tab="general" onclick="switchTab('general')">&#9881; General</div>
 <div class="tab" data-tab="display" onclick="switchTab('display')">&#127912; Display</div>
 <div class="tab" data-tab="stats" onclick="switchTab('stats')">&#9876; Stats</div>
 <div class="tab" data-tab="enchants" onclick="switchTab('enchants')">&#10024; Encantos</div>
@@ -321,8 +356,93 @@ textarea,
 <div class="tab" data-tab="modeldata" onclick="switchTab('modeldata')">&#128736; CustomModel</div>
 </div>
 <div class="tab-content">
+<!-- NUEVO ITEM TAB -->
+<div class="tab-page active" id="tab-nuevo">
+<div class="prop-section">
+<div class="prop-title">Crear Nuevo Item</div>
+<label>ID del Item</label>
+<input type="text" id="newItemId" placeholder="Ej: DIAMOND_SWORD_CUSTOM" onkeydown="if(event.key==='Enter')createNewItemFromTab()">
+<label>Material</label>
+<select id="newItemMaterial">
+<option value="DIAMOND_SWORD">DIAMOND_SWORD</option>
+<option value="DIAMOND_PICKAXE">DIAMOND_PICKAXE</option>
+<option value="DIAMOND_AXE">DIAMOND_AXE</option>
+<option value="DIAMOND_SHOVEL">DIAMOND_SHOVEL</option>
+<option value="DIAMOND_HOE">DIAMOND_HOE</option>
+<option value="DIAMOND_HELMET">DIAMOND_HELMET</option>
+<option value="DIAMOND_CHESTPLATE">DIAMOND_CHESTPLATE</option>
+<option value="DIAMOND_LEGGINGS">DIAMOND_LEGGINGS</option>
+<option value="DIAMOND_BOOTS">DIAMOND_BOOTS</option>
+<option value="NETHERITE_SWORD">NETHERITE_SWORD</option>
+<option value="NETHERITE_PICKAXE">NETHERITE_PICKAXE</option>
+<option value="NETHERITE_AXE">NETHERITE_AXE</option>
+<option value="NETHERITE_SHOVEL">NETHERITE_SHOVEL</option>
+<option value="NETHERITE_HOE">NETHERITE_HOE</option>
+<option value="NETHERITE_HELMET">NETHERITE_HELMET</option>
+<option value="NETHERITE_CHESTPLATE">NETHERITE_CHESTPLATE</option>
+<option value="NETHERITE_LEGGINGS">NETHERITE_LEGGINGS</option>
+<option value="NETHERITE_BOOTS">NETHERITE_BOOTS</option>
+<option value="IRON_SWORD">IRON_SWORD</option>
+<option value="IRON_PICKAXE">IRON_PICKAXE</option>
+<option value="IRON_AXE">IRON_AXE</option>
+<option value="BOW">BOW</option>
+<option value="CROSSBOW">CROSSBOW</option>
+<option value="TRIDENT">TRIDENT</option>
+<option value="SHIELD">SHIELD</option>
+<option value="FISHING_ROD">FISHING_ROD</option>
+<option value="STICK">STICK</option>
+<option value="PAPER">PAPER</option>
+<option value="BOOK">BOOK</option>
+<option value="APPLE">APPLE</option>
+<option value="GOLDEN_APPLE">GOLDEN_APPLE</option>
+<option value="ENCHANTED_GOLDEN_APPLE">ENCHANTED_GOLDEN_APPLE</option>
+<option value="POTION">POTION</option>
+<option value="SPLASH_POTION">SPLASH_POTION</option>
+<option value="LINGERING_POTION">LINGERING_POTION</option>
+<option value="TIPPED_ARROW">TIPPED_ARROW</option>
+<option value="PLAYER_HEAD">PLAYER_HEAD</option>
+<option value="ZOMBIE_HEAD">ZOMBIE_HEAD</option>
+<option value="SKELETON_SKULL">SKELETON_SKULL</option>
+<option value="DRAGON_HEAD">DRAGON_HEAD</option>
+<option value="CREEPER_HEAD">CREEPER_HEAD</option>
+<option value="PIGLIN_HEAD">PIGLIN_HEAD</option>
+<option value="WITHER_SKELETON_SKULL">WITHER_SKELETON_SKULL</option>
+<option value="TOTEM_OF_UNDYING">TOTEM_OF_UNDYING</option>
+<option value="ELYTRA">ELYTRA</option>
+<option value="FIREWORK_ROCKET">FIREWORK_ROCKET</option>
+<option value="FIREWORK_STAR">FIREWORK_STAR</option>
+<option value="KNOWLEDGE_BOOK">KNOWLEDGE_BOOK</option>
+<option value="MAP">MAP</option>
+<option value="COMPASS">COMPASS</option>
+<option value="CLOCK">CLOCK</option>
+<option value="RECOVERY_COMPASS">RECOVERY_COMPASS</option>
+<option value="GOAT_HORN">GOAT_HORN</option>
+<option value="MUSIC_DISC_13">MUSIC_DISC_13</option>
+<option value="MUSIC_DISC_CAT">MUSIC_DISC_CAT</option>
+<option value="MUSIC_DISC_BLOCKS">MUSIC_DISC_BLOCKS</option>
+<option value="MUSIC_DISC_CHIRP">MUSIC_DISC_CHIRP</option>
+<option value="MUSIC_DISC_FAR">MUSIC_DISC_FAR</option>
+<option value="MUSIC_DISC_MALL">MUSIC_DISC_MALL</option>
+<option value="MUSIC_DISC_MELLOHI">MUSIC_DISC_MELLOHI</option>
+<option value="MUSIC_DISC_STAL">MUSIC_DISC_STAL</option>
+<option value="MUSIC_DISC_STRAD">MUSIC_DISC_STRAD</option>
+<option value="MUSIC_DISC_WARD">MUSIC_DISC_WARD</option>
+<option value="MUSIC_DISC_11">MUSIC_DISC_11</option>
+<option value="MUSIC_DISC_WAIT">MUSIC_DISC_WAIT</option>
+<option value="MUSIC_DISC_PIGSTEP">MUSIC_DISC_PIGSTEP</option>
+<option value="MUSIC_DISC_OTHERSIDE">MUSIC_DISC_OTHERSIDE</option>
+<option value="MUSIC_DISC_5">MUSIC_DISC_5</option>
+<option value="MUSIC_DISC_RELIC">MUSIC_DISC_RELIC</option>
+<option value="MUSIC_DISC_CREATOR">MUSIC_DISC_CREATOR</option>
+<option value="MUSIC_DISC_CREATOR_MUSIC_BOX">MUSIC_DISC_CREATOR_MUSIC_BOX</option>
+<option value="MUSIC_DISC_PRECIPICE">MUSIC_DISC_PRECIPICE</option>
+</select>
+<button class="btn btn-primary btn-block" onclick="createNewItemFromTab()" style="margin-top:16px">&#10010; Crear Item</button>
+</div>
+</div>
+
 <!-- GENERAL TAB -->
-<div class="tab-page active" id="tab-general">
+<div class="tab-page" id="tab-general">
 <div id="generalEmpty" class="empty-state"><div class="icon">&#9874;</div><p>Selecciona o crea un item</p></div>
 <div id="generalEditor" style="display:none">
 <div class="prop-section">
@@ -1895,6 +2015,42 @@ document.addEventListener('keydown', function(e){
     if(document.getElementById('projHistoryOverlay').classList.contains('show')) closeProjectHistory();
   }
 });
+
+// ===== LOGO DROPDOWN =====
+function toggleLogoDropdown(e){
+  e.stopPropagation();
+  const dd = document.getElementById('logoDropdown');
+  dd.classList.toggle('show');
+}
+function closeLogoDropdown(){
+  document.getElementById('logoDropdown').classList.remove('show');
+}
+document.addEventListener('click', function(e){
+  const dd = document.getElementById('logoDropdown');
+  if(dd && !e.target.closest('.logo-btn') && !e.target.closest('.logo-dropdown')){
+    dd.classList.remove('show');
+  }
+});
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape') closeLogoDropdown();
+});
+
+// ===== CREATE ITEM FROM TAB =====
+function createNewItemFromTab(){
+  const idInput = document.getElementById('newItemId');
+  const matSelect = document.getElementById('newItemMaterial');
+  let id = idInput.value.trim().toUpperCase();
+  if(!id) id = 'NEW_ITEM_' + Date.now().toString(36).toUpperCase();
+  if(items[id]){ alert('Ya existe un item con ID: ' + id); return; }
+  items[id] = createDefaultItem();
+  items[id].material = matSelect.value;
+  activeItemId = id;
+  idInput.value = '';
+  renderItemList();
+  loadEditor();
+  markDirty();
+  switchTab('general');
+}
 
 // ===== INIT =====
 buildEmojiPicker();
