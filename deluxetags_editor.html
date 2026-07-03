@@ -131,6 +131,24 @@ textarea{resize:vertical;min-height:60px;font-family:'Cascadia Code','Fira Code'
 .sc-toggle{height:22px;padding:0 8px;border:1px solid #30363d;border-radius:3px;background:#30363d;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#c9d1d9;transition:all .15s;flex-shrink:0}
 .sc-toggle:hover{border-color:#58a6ff;color:#58a6ff}
 .sc-toggle.active{background:#1a3a5c;border-color:#58a6ff;color:#58a6ff}
+
+/* Logo Button & Dropdown */
+.logo-btn{width:32px;height:32px;border:none;background:none;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;transition:all .15s;flex-shrink:0}
+.logo-btn:hover{background:#21262d;transform:scale(1.1)}
+.logo-btn img{width:28px;height:28px;image-rendering:auto}
+.logo-dropdown{position:absolute;top:100%;left:0;width:220px;background:#161b22;border:1px solid #30363d;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:1000;display:none;overflow:hidden;animation:logoSlideIn .15s ease-out}
+.logo-dropdown.show{display:block}
+@keyframes logoSlideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.logo-dropdown-hdr{padding:10px 14px;border-bottom:1px solid #21262d;display:flex;align-items:center;gap:8px}
+.logo-dropdown-hdr img{width:24px;height:24px}
+.logo-dropdown-hdr span{font-size:.75rem;font-weight:600;color:#58a6ff}
+.logo-dropdown-item{padding:9px 14px;font-size:.8rem;color:#c9d1d9;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s;border-bottom:1px solid #21262d}
+.logo-dropdown-item:hover{background:#1a2332;color:#58a6ff}
+.logo-dropdown-item:last-child{border-bottom:none}
+.logo-dropdown-item .dd-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.logo-dropdown-item .dd-label{flex:1}
+.logo-dropdown-sep{height:1px;background:#21262d;margin:0}
+
 /* ===========================
    MOBILE / RESPONSIVE
 =========================== */
@@ -218,6 +236,22 @@ textarea,
 <body>
 <!-- TOP BAR -->
 <div class="topbar">
+<div style="position:relative">
+<button class="logo-btn" onclick="toggleLogoDropdown(event)" title="Menu"><img src="img/ml_logo.png" alt="ML"></button>
+<div class="logo-dropdown" id="logoDropdown">
+<div class="logo-dropdown-hdr"><img src="img/ml_logo.png" alt="ML"><span>MineLatino</span></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.com','_blank');closeLogoDropdown()"><span class="dd-icon">&#127760;</span><span class="dd-label">MineLatino</span></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.shop','_blank');closeLogoDropdown()"><span class="dd-icon">&#128722;</span><span class="dd-label">Tienda MineLatino</span></div>
+<div class="logo-dropdown-item" onclick="window.open('http://discord.minelatino.com','_blank');closeLogoDropdown()"><span class="dd-icon">&#128172;</span><span class="dd-label">Discord MineLatino</span></div>
+<div class="logo-dropdown-sep"></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.net/tools/editor/trmenu','_blank');closeLogoDropdown()"><span class="dd-icon">&#9874;</span><span class="dd-label">TrMenu Editor</span></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.net/tools/editor/mmoitems','_blank');closeLogoDropdown()"><span class="dd-icon">&#9876;</span><span class="dd-label">MMOItems Editor</span></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.net/tools/editor/deluxetags','_blank');closeLogoDropdown()"><span class="dd-icon">&#127991;</span><span class="dd-label">Tags Editor</span></div>
+<div class="logo-dropdown-sep"></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.com/herramientas-minecraft-rgb/','_blank');closeLogoDropdown()"><span class="dd-icon">&#127912;</span><span class="dd-label">RGB Gradient</span></div>
+<div class="logo-dropdown-item" onclick="window.open('https://minelatino.com/herramientas-discord-tiempo/','_blank');closeLogoDropdown()"><span class="dd-icon">&#128336;</span><span class="dd-label">Discord Tiempo</span></div>
+</div>
+</div>
 <h1 style="margin:0;font-size:.85rem">&#9874; MineLatino | Editor de Tags</h1>
 <div style="flex:1"></div>
 <button class="btn btn-secondary" onclick="exportYaml()">&#11015; Descargar .yml</button>
@@ -225,7 +259,8 @@ textarea,
 
 <!-- TAB BAR -->
 <div class="tab-bar">
-<div class="tab active" data-tab="editor" onclick="switchTab('editor')">&#9998; Editor</div>
+<div class="tab active" data-tab="nuevo" onclick="switchTab('nuevo')">&#10010; Nuevo Tag</div>
+<div class="tab" data-tab="editor" onclick="switchTab('editor')">&#9998; Editor</div>
 <div class="tab" data-tab="preview" onclick="switchTab('preview');updatePreview()">&#128065; Preview</div>
 <div class="tab" data-tab="yaml" onclick="switchTab('yaml');generateYamlPreview()">&#128196; YAML</div>
 </div>
@@ -233,12 +268,31 @@ textarea,
 <!-- TAB CONTENT -->
 <div class="tab-content">
 
+<!-- NUEVO TAG TAB -->
+<div class="tab-page active" id="tab-nuevo">
+<div class="prop-section">
+<div class="prop-title">Crear Nuevo Tag</div>
+<label>ID del Tag</label>
+<input type="text" id="newTagId" placeholder="Ej: vip, admin, moderador" onkeydown="if(event.key==='Enter')createNewTagFromTab()">
+<label>Texto del Tag</label>
+<input type="text" id="newTagText" placeholder="Ej: &8[&aVIP&8]&f" value="&8[&f&8]&f">
+<label>Textura (base64 o URL)</label>
+<input type="text" id="newTagTexture" placeholder="Pega la textura base64 del tag">
+<label>Permiso</label>
+<input type="text" id="newTagPermission" placeholder="Ej: deluxetags.tag.vip" value="deluxetags.tag.newtag">
+<label>Lore</label>
+<textarea id="newTagLore" rows="2" placeholder="Descripcion del tag">&7New tag description</textarea>
+<label>Mensaje sin permiso</label>
+<input type="text" id="newTagNoPerm" placeholder="Mensaje cuando no tiene permiso" value="&cYou don't have permission for this tag!">
+<button class="btn btn-primary btn-block" onclick="createNewTagFromTab()" style="margin-top:16px">&#10010; Crear Tag</button>
+</div>
+</div>
+
 <!-- EDITOR TAB -->
-<div class="tab-page active" id="tab-editor">
+<div class="tab-page" id="tab-editor">
 <!-- Tag Manager -->
 <div class="tag-manager">
 <div class="tag-list" id="tagList"></div>
-<button class="tag-add-btn" onclick="addNewTag()">+ New Tag</button>
 </div>
 
 <div class="prop-section">
@@ -961,6 +1015,58 @@ function switchTab(tab){
   document.getElementById('tab-'+tab).classList.add('active');
   if(tab==='yaml') generateYamlPreview();
   if(tab==='preview') updatePreview();
+}
+
+// ===== LOGO DROPDOWN =====
+function toggleLogoDropdown(e){
+  e.stopPropagation();
+  const dd = document.getElementById('logoDropdown');
+  dd.classList.toggle('show');
+}
+function closeLogoDropdown(){
+  document.getElementById('logoDropdown').classList.remove('show');
+}
+document.addEventListener('click', function(e){
+  const dd = document.getElementById('logoDropdown');
+  if(dd && !e.target.closest('.logo-btn') && !e.target.closest('.logo-dropdown')){
+    dd.classList.remove('show');
+  }
+});
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape') closeLogoDropdown();
+});
+
+// ===== CREATE TAG FROM TAB =====
+function createNewTagFromTab(){
+  const id = document.getElementById('newTagId').value.trim() || 'newtag' + (allTags.length + 1);
+  const texture = document.getElementById('newTagTexture').value || 'eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNWMwZDU3YzM3MDk4YzY5N2NhOGY4MjIyZjUzNzY1ZTUxYTI5ODNmNDYwM2Y0ZDJiMTdkYjAxZTZjNjhhYjg5ZSJ9fX0=';
+  const text = document.getElementById('newTagText').value || '&8[&f&8]&f';
+  const permission = document.getElementById('newTagPermission').value || 'deluxetags.tag.' + id;
+  const lore = document.getElementById('newTagLore').value || '&7New tag description';
+  const noPermMsg = document.getElementById('newTagNoPerm').value || "&cYou don't have permission for this tag!";
+
+  // Check duplicate
+  for(let i = 0; i < allTags.length; i++){
+    if(allTags[i].id === id){ alert('Ya existe un tag con ID: ' + id); return; }
+  }
+
+  const newTag = { id, texture, text, permission, lore, noPermMsg };
+  allTags.push(newTag);
+  currentTagIndex = allTags.length - 1;
+  loadTagToObject(newTag);
+  renderTagList();
+  updatePreview();
+  markDirty();
+
+  // Clear form
+  document.getElementById('newTagId').value = '';
+  document.getElementById('newTagTexture').value = '';
+  document.getElementById('newTagText').value = '&8[&f&8]&f';
+  document.getElementById('newTagPermission').value = 'deluxetags.tag.newtag';
+  document.getElementById('newTagLore').value = '&7New tag description';
+  document.getElementById('newTagNoPerm').value = "&cYou don't have permission for this tag!";
+
+  switchTab('editor');
 }
 
 // ===== INIT =====
