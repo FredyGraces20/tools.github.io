@@ -5119,13 +5119,10 @@ function onRefSearch(val){
 // ═══════════════════════════════════════════
 // AI CHAT SYSTEM
 // ═══════════════════════════════════════════
-// Clear old config from localStorage
-localStorage.removeItem('ai_api_url');
-localStorage.removeItem('ai_api_key');
-localStorage.removeItem('ai_model');
-let AI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
-let AI_API_KEY = '';
-let AI_MODEL = 'gemini-2.0-flash';
+// AI API Configuration (user must configure via settings panel)
+let AI_API_URL = localStorage.getItem('ai_api_url') || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+let AI_API_KEY = localStorage.getItem('ai_api_key') || '';
+let AI_MODEL = localStorage.getItem('ai_model') || 'gemini-2.0-flash';
 let aiChatHistory = [];
 let aiIsLoading = false;
 let _aiPendingActions = [];
