@@ -5119,17 +5119,13 @@ function onRefSearch(val){
 // ═══════════════════════════════════════════
 // AI CHAT SYSTEM
 // ═══════════════════════════════════════════
-// Clear old invalid config from localStorage
-const _storedKey = localStorage.getItem('ai_api_key');
-const _StoredUrl = localStorage.getItem('ai_api_url') || '';
-if(_StoredKey && _StoredKey !== 'AQ.Ab8RN6IfkXtMWbNw0Bj0j_9Pz3W0Ll4yxFYZP-x2EcGKMUnzrg'){
-  localStorage.removeItem('ai_api_url');
-  localStorage.removeItem('ai_api_key');
-  localStorage.removeItem('ai_model');
-}
-let AI_API_URL = localStorage.getItem('ai_api_url') || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
-let AI_API_KEY = localStorage.getItem('ai_api_key') || 'AQ.Ab8RN6IfkXtMWbNw0Bj0j_9Pz3W0Ll4yxFYZP-x2EcGKMUnzrg';
-let AI_MODEL = localStorage.getItem('ai_model') || 'gemini-2.0-flash';
+// Clear old config from localStorage
+localStorage.removeItem('ai_api_url');
+localStorage.removeItem('ai_api_key');
+localStorage.removeItem('ai_model');
+let AI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+let AI_API_KEY = '';
+let AI_MODEL = 'gemini-2.0-flash';
 let aiChatHistory = [];
 let aiIsLoading = false;
 let _aiPendingActions = [];
@@ -5177,7 +5173,7 @@ function resetAiSettings(){
   localStorage.removeItem('ai_api_key');
   localStorage.removeItem('ai_model');
   AI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
-  AI_API_KEY = 'AQ.Ab8RN6IfkXtMWbNw0Bj0j_9Pz3W0Ll4yxFYZP-x2EcGKMUnzrg';
+  AI_API_KEY = '';
   AI_MODEL = 'gemini-2.0-flash';
   document.getElementById('aiApiUrl').value = AI_API_URL;
   document.getElementById('aiApiKey').value = AI_API_KEY;
@@ -5187,11 +5183,11 @@ function resetAiSettings(){
 
 function applyAiPreset(preset){
   const presets = {
-    aiml: { url:'https://api.aimlapi.com/v1/chat/completions', key:'AQ.Ab8RN6Ih8fKblgep6LD3QCAN4MCMM4zkG9hnEQT7eKxdJ9H7Qg', model:'gpt-4o-mini' },
+    aiml: { url:'https://api.aimlapi.com/v1/chat/completions', key:'', model:'gpt-4o-mini' },
     openai: { url:'https://api.openai.com/v1/chat/completions', key:'', model:'gpt-4o-mini' },
     openrouter: { url:'https://openrouter.ai/api/v1/chat/completions', key:'', model:'openai/gpt-4o-mini' },
-    deepseek: { url:'https://api.deepseek.com/v1/chat/completions', key:'sk-f42c4fabe3454ab08e216fa29bb5c283', model:'deepseek-chat' },
-    gemini: { url:'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', key:'AQ.Ab8RN6IfkXtMWbNw0Bj0j_9Pz3W0Ll4yxFYZP-x2EcGKMUnzrg', model:'gemini-2.0-flash' }
+    deepseek: { url:'https://api.deepseek.com/v1/chat/completions', key:'', model:'deepseek-chat' },
+    gemini: { url:'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', key:'', model:'gemini-2.0-flash' }
   };
   const p = presets[preset];
   if(p){
@@ -5357,8 +5353,12 @@ REGLAS:
 async function sendAiMessage(){
   const input = document.getElementById('aiInput');
   const msg = input.value.trim();
-  console.log('[AI] Send attempt:', {msg: msg.substring(0,50), loading: aiIsLoading, url: AI_API_URL, key: AI_API_KEY.substring(0,10)+'...'});
+  console.log('[AI] Send attempt:', {msg: msg.substring(0,50), loading: aiIsLoading, url: AI_API_URL, key: AI_API_KEY ? AI_API_KEY.substring(0,10)+'...' : '(empty)'});
   if(!msg || aiIsLoading) return;
+  if(!AI_API_KEY){
+    addAiMessage('assistant', '\u26a0\ufe0f No has configurado tu API key. Haz clic en \u2699 (arriba a la derecha del panel AI), selecciona un preset y pega tu API key.');
+    return;
+  }
 
   input.value = '';
   input.style.height = 'auto';
